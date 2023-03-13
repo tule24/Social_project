@@ -1,0 +1,189 @@
+{
+    "users": [
+        {
+            "id": "1",
+            "wallet": "123456",
+            "name": "user-A",
+            "email": "lecongtu@gmail.com",
+            "friends": ["2", "3"],
+            "ava": "ava A",
+            "phone": "0123456",
+            "address": "Ho Chi Minh"
+        },
+        {
+            "id": "2",
+            "wallet": "abcxyz",
+            "name": "user-B",
+            "email": "lecongtuan@gmail.com",
+            "friends": ["1", "3"],
+            "ava": "ava B",
+            "phone": "0456789",
+            "address": "Thanh Hoa"
+        },
+        {
+            "id": "3",
+            "wallet": "abc123",
+            "name": "user-C",
+            "email": "lecon@gmail.com",
+            "friends": ["1", "2", "4"],
+            "ava": "ava C",
+            "phone": "078456",
+            "address": "Ha Noi"
+        },
+        {
+            "id": "4",
+            "wallet": "789xyz",
+            "name": "user-D",
+            "email": "le@gmail.com",
+            "friends": ["3"],
+            "ava": "ava D",
+            "phone": "3456",
+            "address": "Dong Nai"
+        },
+        {
+            "id": "5",
+            "wallet": "876asdsad",
+            "name": "user-E",
+            "email": "letu@gmail.com",
+            "friends": [],
+            "ava": "ava E",
+            "phone": "011231236",
+            "address": "Can Tho"
+        }
+    ],
+    "posts": [
+        {
+            "id": "p1",
+            "creatorId": "1",
+            "content": "Day la post so 1",
+            "media": ["image1", "image2"],
+            "like": ["1", "2", "3"],
+            "totalComment": 3,
+            "vision": "friend",
+            "createdAt": 456789  
+        },
+        {
+            "id": "p2",
+            "creatorId": "1",
+            "content": "Day la post so 2 cua user 1",
+            "like": ["1", "2", "3", "4"],
+            "totalComment": 2,
+            "vision": "public",
+            "createdAt": 456789       
+        },
+        {
+            "id": "p3",
+            "creatorId": "3",
+            "content": "Day la post so 3",
+            "media": ["image1"],
+            "like": ["1", "2", "3", "4"],
+            "totalComment": 1,
+            "vision": "public",
+            "createdAt": 456789
+        },
+        {
+            "id": "p4",
+            "creatorId": "4",
+            "content": "Day la post so 4",
+            "totalComment": 3,
+            "vision": "private",
+            "createdAt": 456789
+        },
+        {
+            "id": "p5",
+            "creatorId": "5",
+            "content": "Day la post so 5",
+            "media": ["image1", "image2"],
+            "like": ["1", "2"],
+            "totalComment": 4,
+            "vision": "public",
+            "createdAt": 456789 
+        }
+    ],
+    "comments": [
+       {
+        "postId": "p1",
+        "commentArr": [
+            {
+                "userId": "1",
+                "content": "Dep Khong ca nha",
+                "createdAt": 123456789,
+                "like": ["1", "2", "3"],
+                "childs": [
+                    {
+                        "userId": "2",
+                        "content": "Qua dep nun",
+                        "createdAt": 123213214,
+                        "like": ["1"]
+                    },
+                    {
+                        "userId": "1",
+                        "content": "Cam on anh trai",
+                        "createdAt": 123213214,
+                        "like": ["2"]
+                    }
+                ]
+            },
+            {
+                "userId": "2",
+                "content": "Qua dep nun",
+                "createdAt": 123213214,
+                "like": ["1"]
+            }
+        ] 
+        },
+        {
+            "postId": "p2",
+            "commentArr": [
+            {
+                "userId": "3",
+                "content": "Dm thang cho",
+                "createdAt": 123456789,
+                "like": [],
+                "childs": [{
+                    "userId": "2",
+                    "content": "Thang vo van hoa",
+                    "createdAt": 456789,
+                    "like": ["1"]
+                }]
+            } 
+        ]},
+        {
+            "postId":"p3",
+            "commentArr": [
+            {
+                "userId": "3",
+                "content": "Cho xin like de",
+                "createdAt": 123456789,
+                "like": ["1", "2", "3", "4", "5"]
+            }
+        ]},
+        {
+            "postId":"p5",
+            "commentArr": [
+            {
+                "userId": "1",
+                "content": "Danh lon khong",
+                "createdAt": 123456789,
+                "like": ["5"],
+                "childs":  [{
+                    "userId": "5",
+                    "content": "Danh chet cha m gio",
+                    "createdAt": 123213214,
+                    "like": ["1"]
+                }]
+            },
+            {
+                "userId": "1",
+                "content": "Solo ban oi",
+                "createdAt": 123213214,
+                "childs":  [{
+                    "userId": "2",
+                    "content": "Thoi 2 anh oi",
+                    "createdAt": 123213214,
+                    "like": ["1", "2", "3", "4"]
+                }]
+            }
+        ]}
+    ]
+}

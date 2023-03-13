@@ -1,0 +1,24 @@
+{
+  "name": "social_project_be",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "nodemon": "^2.0.21"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.5.0",
+    "graphql": "^16.6.0",
+    "graphql-tag": "^2.12.6",
+    "mongoose": "^7.0.1",
+    "validator": "^13.9.0",
+    "wallet-address-validator": "^0.2.4"
+  }
+}

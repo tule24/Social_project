@@ -15,7 +15,10 @@ async function start() {
 
     try {
         await connectDB(process.env.MONGO_URI)
-        const { url } = await startStandaloneServer(server, { listen: port, context: () => ({ dbMethods }) })
+        const { url } = await startStandaloneServer(server, {
+            listen: port,
+            context: ({ req }) => ({ dbMethods, req })
+        })
         console.log(`🚀 Server running at ${url}`);
     } catch (error) {
         console.log(error)

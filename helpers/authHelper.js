@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
+const GraphError = require('../errors')
+const User = require('../models/User')
 
 const checkPassword = async (password, hashedPassword) => {
     const check = await bcrypt.compare(password, hashedPassword)
@@ -35,4 +37,40 @@ const createRefreshJWT = (userId) => jwt.sign(
     { expiresIn: process.env.JWT_REFRESH_LIFETIME }
 )
 
-module.exports = { checkPassword, createJWT, checkPasswordChange, createPasswordResetToken, createRefreshJWT }
+const checkAuth = async (req) => {
+    try {
+        const authHeader = req.headers.authorization
+        if (!authHeader || !authHeader.startsWith('Bearer')) {
+            throw GraphError(
+                "Authentication invalid",
+                "UNAUTHORIZED"
+            )
+        }
+
+        const token = authHeader.split(' ')[1]
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+        const curUser = await User.findById(decoded.userId)
+        if (!curUser) {
+            throw GraphError(
+                "User belonging to this token no longer exist",
+                "UNAUTHORIZED"
+            )
+        }
+
+        if (checkPasswordChange(curUser.passwordChangedAt, decoded.iat)) {
+            throw GraphError(
+                "User recent changed the password. Please log in again with new password",
+                "UNAUTHORIZED"
+            )
+        }
+        return curUser
+    } catch (error) {
+        throw GraphError(
+            error.message,
+            "UNAUTHORIZED"
+        )
+    }
+}
+
+module.exports = { checkPassword, createJWT, checkPasswordChange, createPasswordResetToken, createRefreshJWT, checkAuth }

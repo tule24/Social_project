@@ -15,12 +15,22 @@ const dateResolver = new GraphQLScalarType({
 })
 const resolvers = {
     Date: dateResolver,
+    AuthResponse: {
+        __resolveType(obj) {
+            if (obj.code) {
+                return 'ErrorResponse'
+            } else {
+                return 'User'
+            }
+        }
+    },
     Query: {
         ...userResolver.Query,
         ...postResolver.Query
     },
     Mutation: {
-        ...authResolver.Mutation
+        ...authResolver.Mutation,
+        ...userResolver.Mutation
     },
     User: {
         ...userResolver.User

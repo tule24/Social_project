@@ -26,7 +26,30 @@ const commentSchema = new Schema({
             like: [{
                 type: Schema.Types.ObjectId,
                 ref: 'users'
-            }]
+            }],
+            childComments: [
+                {
+                    userId: {
+                        type: Schema.Types.ObjectId,
+                        ref: 'users'
+                    },
+                    content: {
+                        type: String,
+                        require: [true, "Please provide comment content"]
+                    },
+                    media: [{
+                        type: String
+                    }],
+                    createdAt: {
+                        type: Number,
+                        default: new Date.now()
+                    },
+                    like: [{
+                        type: Schema.Types.ObjectId,
+                        ref: 'users'
+                    }]
+                }
+            ]
         }
     ]
 })

@@ -8,15 +8,17 @@ const postSchema = new Schema({
     },
     content: {
         type: String,
-        default: ""
+        trim: true,
+        require: [true, "Please provide content"],
+        minLength: [1, "Content length > 0"]
     },
     media: [{
         type: String
     }],
-    like: {
-        type: Number,
-        default: 0
-    },
+    like: [{
+        type: Schema.Types.ObjectId,
+        ref: 'users'
+    }],
     vision: {
         type: String,
         enum: ['private', 'public', 'friend'],

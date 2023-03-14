@@ -1,13 +1,23 @@
 type Query {
-  users(name: String): [User]!
-  user(wallet: String!): User
-  posts: [Post]!
+  users: [User]!
+  user(id: ID!): User
+  # postsForUser: [Post]!
+  # postsOfUser: [Post]!
 }
 
 type Mutation {
   register(registerInput: registerInput!): AuthResponse!
   login(loginInput: loginInput!): AuthResponse!
-  createPost(postInput: postInput!): PostResponse!
+  # updateUser(userInput: registerInput!): AuthResponse!
+  # changePassword(oldPassword: String!, newPassword: String!): BaseResponse!
+  # addFriend(friendId: ID!): String!
+  # confirmFriend(friendId: ID!): String!
+  # unFriend(friendId: ID!): String!
+  # createPost(postInput: postInput!): PostResponse!
+  # updatePost(postId: ID!, postInput: postInput!): PostResponse!
+  # handleLikePost(postId: ID!): BaseResponse!
+  # deletePost(postId: ID!): PostResponse!
+  # createComment(commentInput: commentInput!): CommentResponse!
 }
 
 scalar Date
@@ -32,29 +42,29 @@ input postInput {
   vision: String
 }
 
-interface Response {
+# input commentInput {
+#   postId: ID
+#   content: String
+#   media: [String]
+# }
+
+type ErrorResponse {
   code: String!
-  success: Boolean!
   message: String!
 }
 
-type AuthResponse implements Response{
-  code: String!
-  success: Boolean!
-  message: String!
-  user: User
-}
+union AuthResponse = User | ErrorResponse
+union PostResponse = Post | ErrorResponse
 
-type PostResponse implements Response{
-  code: String!
-  success: Boolean!
-  message: String!
-  post: Post
-}
+# type CommentResponse implements Response {
+#   code: String!
+#   success: Boolean!
+#   message: String!
+#   comment: Comment
+# }
 
 type User {
   id: ID!
-  wallet: String!
   name: String!
   email: String!
   ava: String
@@ -64,7 +74,8 @@ type User {
   refreshToken: String
   createdAt: Date!
   updatedAt: Date!
-  friends: [User]
+  friendRequestList: [User]
+  friendList: [User]
   posts: [Post]
 }
 
@@ -73,7 +84,7 @@ type BaseComment {
   content: String!
   media: [String]
   createdAt: Date!
-  likes: [User]!
+  userLike: [User]!
 }
 
 type Comment {
@@ -82,7 +93,7 @@ type Comment {
   content: String!
   media: [String]
   createdAt: Date!
-  likes: [User]!
+  userLike: [User]!
   childComments: [BaseComment]
 }
 
@@ -91,7 +102,7 @@ type Post {
   creator: User!
   content: String
   media: [String]
-  likes: [User]!
+  userLike: [User]!
   vision: String!
   totalComment: Int!
   comments: [Comment]

@@ -24,7 +24,9 @@ const authMethod = {
             password,
             email,
             friends: [],
-            ...props
+            ava: props.ava || "",
+            phone: props.phone || "",
+            address: props.address || ""
         })
 
         delete newUser.password

@@ -1,0 +1,99 @@
+type Query {
+  users(name: String): [User]!
+  user(wallet: String!): User
+  posts: [Post]!
+}
+
+type Mutation {
+  register(registerInput: registerInput!): AuthResponse!
+  login(loginInput: loginInput!): AuthResponse!
+  createPost(postInput: postInput!): PostResponse!
+}
+
+scalar Date
+
+input registerInput {
+  name: String
+  password: String
+  email: String
+  ava: String
+  phone: String
+  address: String
+}
+
+input loginInput {
+  email: String
+  password: String
+}
+
+input postInput {
+  content: String
+  media: [String]
+  vision: String
+}
+
+interface Response {
+  code: String!
+  success: Boolean!
+  message: String!
+}
+
+type AuthResponse implements Response{
+  code: String!
+  success: Boolean!
+  message: String!
+  user: User
+}
+
+type PostResponse implements Response{
+  code: String!
+  success: Boolean!
+  message: String!
+  post: Post
+}
+
+type User {
+  id: ID!
+  wallet: String!
+  name: String!
+  email: String!
+  ava: String
+  phone: String
+  address: String
+  token: String
+  refreshToken: String
+  createdAt: Date!
+  updatedAt: Date!
+  friends: [User]
+  posts: [Post]
+}
+
+type BaseComment {
+  user: User!
+  content: String!
+  media: [String]
+  createdAt: Date!
+  likes: [User]!
+}
+
+type Comment {
+  id: ID!
+  user: User!
+  content: String!
+  media: [String]
+  createdAt: Date!
+  likes: [User]!
+  childComments: [BaseComment]
+}
+
+type Post {
+  id: ID!
+  creator: User!
+  content: String
+  media: [String]
+  likes: [User]!
+  vision: String!
+  totalComment: Int!
+  comments: [Comment]
+  createdAt: Date!
+}

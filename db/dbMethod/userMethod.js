@@ -39,6 +39,7 @@ const userMethod = {
                 "NOT_FOUND"
             )
         }
+        delete userUpdate.password
         return userUpdate
     },
     changePassword: async ({ _id }, oldPassword, newPassword) => {
@@ -57,6 +58,8 @@ const userMethod = {
         user.password = newPassword
         user.passwordChangedAt = Date.now()
         await user.save()
+        delete user.password
+        return user
     },
     handleAddFriend: async ({ _id }, friendId) => {
         if (!friendId) {
@@ -72,8 +75,10 @@ const userMethod = {
                 "BAD_REQUEST"
             )
         }
-        user.friendsRequest.push(_id)
+        user.friendsRequest.push(friendId)
         await user.save()
+        delete user.password
+        return user
     },
     handleUnFriend: async ({ _id }, friendId) => {
         if (!friendId) {
@@ -95,6 +100,8 @@ const userMethod = {
             )
         }
         await user.save()
+        delete user.password
+        return user
     },
     handleConfirmFriend: async ({ _id }, friendId) => {
         if (!friendId) {
@@ -121,6 +128,7 @@ const userMethod = {
             )
         }
         user.friends.push(friendId)
+        delete user.password
         await user.save()
     }
 }

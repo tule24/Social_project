@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const GraphError = require('../errors')
 const User = require('../models/User')
+const catchAsync = require('../helpers/catchAsync')
 
 const checkPassword = async (password, hashedPassword) => {
     const check = await bcrypt.compare(password, hashedPassword)
@@ -38,39 +39,32 @@ const createRefreshJWT = (userId) => jwt.sign(
 )
 
 const checkAuth = async (req) => {
-    try {
-        const authHeader = req.headers.authorization
-        if (!authHeader || !authHeader.startsWith('Bearer')) {
-            throw GraphError(
-                "Authentication invalid",
-                "UNAUTHORIZED"
-            )
-        }
-
-        const token = authHeader.split(' ')[1]
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
-
-        const curUser = await User.findById(decoded.userId)
-        if (!curUser) {
-            throw GraphError(
-                "User belonging to this token no longer exist",
-                "UNAUTHORIZED"
-            )
-        }
-
-        if (checkPasswordChange(curUser.passwordChangedAt, decoded.iat)) {
-            throw GraphError(
-                "User recent changed the password. Please log in again with new password",
-                "UNAUTHORIZED"
-            )
-        }
-        return curUser
-    } catch (error) {
+    const authHeader = req.headers.authorization
+    if (!authHeader || !authHeader.startsWith('Bearer')) {
         throw GraphError(
-            error.message,
+            "Authentication invalid",
             "UNAUTHORIZED"
         )
     }
+
+    const token = authHeader.split(' ')[1]
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+    const curUser = await User.findById(decoded.userId)
+    if (!curUser) {
+        throw GraphError(
+            "User belonging to this token no longer exist",
+            "UNAUTHORIZED"
+        )
+    }
+
+    if (checkPasswordChange(curUser.passwordChangedAt, decoded.iat)) {
+        throw GraphError(
+            "User recent changed the password. Please log in again with new password",
+            "UNAUTHORIZED"
+        )
+    }
+    return curUser
 }
 
 module.exports = { checkPassword, createJWT, checkPasswordChange, createPasswordResetToken, createRefreshJWT, checkAuth }

@@ -35,7 +35,10 @@ const userSchema = new Schema({
     ava: String,
     phone: String,
     address: String,
-    refreshToken: String
+    refreshToken: String,
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date
 }, { timestamps: true })
 
 userSchema.pre('save', async function (next) {

@@ -1,18 +1,19 @@
 type Query {
   users: [User]!
-  user(id: ID!): User
+  user(id: ID!): Response!
   # postsForUser: [Post]!
   # postsOfUser: [Post]!
 }
 
 type Mutation {
-  register(registerInput: registerInput!): AuthResponse!
-  login(loginInput: loginInput!): AuthResponse!
-  # updateUser(userInput: registerInput!): AuthResponse!
-  # changePassword(oldPassword: String!, newPassword: String!): BaseResponse!
-  # addFriend(friendId: ID!): String!
-  # confirmFriend(friendId: ID!): String!
-  # unFriend(friendId: ID!): String!
+  register(registerInput: registerInput!): Response!
+  login(loginInput: loginInput!): Response!
+  logout: Response!
+  updateUser(userInput: registerInput!): Response!
+  changePassword(oldPassword: String!, newPassword: String!): Response!
+  addFriend(friendId: ID!): Response!
+  confirmFriend(friendId: ID!): Response!
+  unFriend(friendId: ID!): Response!
   # createPost(postInput: postInput!): PostResponse!
   # updatePost(postId: ID!, postInput: postInput!): PostResponse!
   # handleLikePost(postId: ID!): BaseResponse!
@@ -53,8 +54,7 @@ type ErrorResponse {
   message: String!
 }
 
-union AuthResponse = User | ErrorResponse
-union PostResponse = Post | ErrorResponse
+union Response = User | ErrorResponse
 
 # type CommentResponse implements Response {
 #   code: String!

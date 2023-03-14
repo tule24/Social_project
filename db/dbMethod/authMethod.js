@@ -63,6 +63,18 @@ const authMethod = {
         user.token = createJWT(user._id)
         return user
     },
+    logout: async ({ _id }) => {
+        const user = await User.findById(_id)
+        if (!user) {
+            throw GraphError(
+                "User not found",
+                "NOT_FOUND"
+            )
+        }
+        user.refreshToken = null
+        await user.save()
+        return user
+    }
 }
 
 module.exports = authMethod

@@ -1,12 +1,12 @@
 const User = require('../../models/User')
 const GraphError = require('../../errors')
-const { checkPassword, checkAuth } = require('../../helpers/authHelper')
-const { updateId, addId, checkFound } = require('../../helpers/userHelper')
+const { checkPassword } = require('../../helpers/authHelper')
+const { updateId, addId, checkFound, removeId } = require('../../helpers/methodHelper')
 
 const userMethod = {
-    getUserById: async (req, userId) => {
-        await checkAuth(req)
-        const user = await checkFound(userId)
+    // handle query
+    getUserById: async (userId) => {
+        const user = await checkFound(userId, User)
         return user
     },
     getUserLike: async (like) => {
@@ -23,16 +23,16 @@ const userMethod = {
         })
         return formatFriends
     },
-    getAllUser: async (req) => {
-        await checkAuth(req)
+    getAllUser: async () => {
         const users = await User.find()
         return {
             totalUser: users.length,
             users
         }
     },
-    updateUser: async (req, userInput) => {
-        const user = await checkAuth(req)
+
+    // handle mutation
+    updateUser: async (user, userInput) => {
         if (userInput.password) {
             throw GraphError(
                 "This router isn't used to update password",
@@ -42,8 +42,7 @@ const userMethod = {
         const newUser = await User.findByIdAndUpdate(user._id, userInput, { new: true, runValidators: true })
         return newUser
     },
-    changePassword: async (req, oldPassword, newPassword) => {
-        const user = await checkAuth(req)
+    changePassword: async (user, oldPassword, newPassword) => {
         if (!newPassword || !oldPassword) {
             throw GraphError(
                 "Please provide new & old password",
@@ -60,23 +59,18 @@ const userMethod = {
         await user.save()
         return user
     },
-    handleAddFriend: async (req, friendId) => {
-        const user = await checkAuth(req)
-        const friend = await checkFound(friendId)
+    handleAddFriend: async (user, friendId) => {
+        const friend = await checkFound(friendId, User)
 
         friend.friends = addId(friend.friends, user._id, 'request')
         user.friends = addId(user.friends, friendId, 'waiting')
 
         await user.save()
         await friend.save()
-        return {
-            code: "OK",
-            message: "Send add friend request success"
-        }
+        return user
     },
-    handleConfirmFriend: async (req, friendId) => {
-        const user = await checkAuth(req)
-        const friend = await checkFound(friendId)
+    handleConfirmFriend: async (user, friendId) => {
+        const friend = await checkFound(friendId, User)
 
         user.friends = updateId(user.friends, friendId, 'confirm')
         friend.friends = updateId(friend.friends, user._id, 'confirm')
@@ -84,14 +78,10 @@ const userMethod = {
         await user.save()
         await friend.save()
 
-        return {
-            code: "OK",
-            message: "Confirm add friend success"
-        }
+        return user
     },
-    handleUnFriend: async (req, friendId) => {
-        const user = await checkAuth(req)
-        const friend = await checkFound(friendId)
+    handleUnFriend: async (user, friendId) => {
+        const friend = await checkFound(friendId, User)
 
         user.friends = removeId(user.friends, friendId)
         friend.friends = removeId(friend.friends, user._id)
@@ -99,10 +89,7 @@ const userMethod = {
         await user.save()
         await friend.save()
 
-        return {
-            code: "OK",
-            message: "Unfriend success"
-        }
+        return user
     },
 }
 

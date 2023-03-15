@@ -3,6 +3,7 @@ const { checkPassword, createRefreshJWT, createJWT, checkAuth } = require('../..
 const GraphError = require('../../errors')
 
 const authMethod = {
+    // handle mutation
     regiser: async ({ name, password, email, ...props }) => {
         if (!name || !password || !email) {
             throw GraphError(

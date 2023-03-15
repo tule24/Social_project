@@ -1,10 +1,36 @@
 const Post = require('../../models/Post')
+const Comment = require('../../models/Comment')
 const GraphError = require('../../errors')
+const { checkFound } = require('../../helpers/methodHelper')
 
 const postMethod = {
-    createPost: async ({ _id }, { content, media, vision }) => {
+    // handle query
+    getPostsForUser: async (user) => {
+        const friendIds = user.friends.filter(el => el.status === 'confirm').map(el => el.userId)
+        const posts = await Post.find({
+            $or: [
+                { creatorId: { $in: [user._id, ...friendIds] } },
+                { vision: 'public' }
+            ]
+        })
+        return posts
+    },
+    getPostsOfUser: async (id) => {
+        const posts = await Post.find({ creatorId: id })
+        return posts
+    },
+
+    // handle mutation
+    createPost: async (user, { content, media, vision }) => {
+        if (!content) {
+            throw GraphError(
+                "Please provide content",
+                "BAD_REQUEST"
+            )
+        }
+
         const newPost = new Post({
-            creatorId: _id,
+            creatorId: user._id,
             content,
             media: media || [],
             vision: vision || "friend"
@@ -13,78 +39,40 @@ const postMethod = {
         await newPost.save()
         return newPost
     },
-    updatePost: async ({ _id }, postId, postInput) => {
-        if (!postId) {
-            throw GraphError(
-                "Please provide post id",
-                "BAD_REQUEST"
-            )
-        }
-
-        const post = await Post.findOneAndUpdate({ _id: postId, creatorId: _id }, postInput, { new: true, runValidators: true })
+    updatePost: async (user, postId, postInput) => {
+        const post = await Post.findOneAndUpdate({ _id: postId, creatorId: user._id }, postInput, { new: true, runValidators: true })
         if (!post) {
             throw GraphError(
-                "Post not exist or you aren't post's owner",
+                "Post not found or you aren't post's owner",
                 "NOT_FOUND"
             )
         }
         return post
     },
-    handleLikePost: async ({ _id }, postId) => {
-        if (!postId) {
-            throw GraphError(
-                "Please provide post id",
-                "BAD_REQUEST"
-            )
-        }
-
-        const post = await Post.findById(postId)
-        if (!post) {
-            throw GraphError(
-                "Post not found",
-                "NOT_FOUND"
-            )
-        }
+    handleLikePost: async (user, postId) => {
+        const post = await checkFound(postId, Post)
 
         const oldLength = post.like.length
-        post.like = post.like.filter(el => el !== _id)
+        post.like = post.like.filter(el => !el.equals(user._id))
         if (oldLength === post.like.length) {
-            post.like.push(_id)
+            post.like.push(user._id)
         }
 
         await post.save()
+        return post
     },
-    deletePost: async ({ _id }, postId) => {
-        if (!postId) {
-            throw GraphError(
-                "Please provide post id",
-                "BAD_REQUEST"
-            )
-        }
-
-        const post = await Post.findOneAndDelete({ _id: postId, creatorId: _id })
+    deletePost: async (user, postId) => {
+        const post = await Post.findOneAndDelete({ _id: postId, creatorId: user._id })
         if (!post) {
             throw GraphError(
-                "Post not found",
+                "Post not found or you aren't post's owner",
                 "NOT_FOUND"
             )
         }
+
+        await Comment.deleteMany({ postId })
         return post
     },
-    getPostsForUser: async (user) => {
-        const posts = await Post.find({
-            $or: [
-                { creatorId: { $in: [user._id, ...user.friends] } },
-                { vision: 'public' }
-            ]
-        })
-
-        return posts
-    },
-    getPostsOfUser: async (id) => {
-        const posts = await Post.find({ creatorId: id })
-        return posts
-    }
 }
 
 module.exports = postMethod

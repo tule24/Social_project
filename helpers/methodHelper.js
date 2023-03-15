@@ -1,8 +1,7 @@
 const GraphError = require('../errors')
-const User = require('../models/User')
 
 const removeId = (arr, userId) => {
-    const index = arr.findIndex(el => el.userId === userId)
+    const index = arr.findIndex(el => el.userId.equals(userId))
     if (index < 0) {
         throw GraphError(
             "ID not exist",
@@ -14,7 +13,7 @@ const removeId = (arr, userId) => {
 }
 
 const updateId = (arr, userId, status) => {
-    const index = arr.findIndex(el => el.userId === userId)
+    const index = arr.findIndex(el => el.userId.equals(userId))
     if (index < 0) {
         throw GraphError(
             "ID not exist",
@@ -26,7 +25,7 @@ const updateId = (arr, userId, status) => {
 }
 
 const addId = (arr, userId, status) => {
-    if (arr.find(el => el.userId === userId)) {
+    if (arr.find(el => el.userId.equals(userId))) {
         throw GraphError(
             "ID is exist",
             "BAD_REQUEST"
@@ -39,15 +38,21 @@ const addId = (arr, userId, status) => {
     return arr
 }
 
-const checkFound = async (id) => {
-    const user = await User.findById(id)
-    if (!user) {
+const checkFound = async (id, Model) => {
+    if (!id) {
         throw GraphError(
-            "User not exist",
+            "Please provide ID",
+            "BAD_REQUEST"
+        )
+    }
+    const ele = await Model.findById(id)
+    if (!ele) {
+        throw GraphError(
+            "Id not found",
             "NOT_FOUND"
         )
     }
-    return user
+    return ele
 }
 
 module.exports = { updateId, addId, removeId, checkFound }

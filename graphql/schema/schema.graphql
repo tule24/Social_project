@@ -1,19 +1,19 @@
 type Query {
-  users: [User]!
-  user(id: ID!): Response!
+  users: AllUserResponse!
+  user(userId: ID!): UserResponse!
   # postsForUser: [Post]!
   # postsOfUser: [Post]!
 }
 
 type Mutation {
-  register(registerInput: registerInput!): Response!
-  login(loginInput: loginInput!): Response!
-  logout: Response!
-  updateUser(userInput: registerInput!): Response!
-  changePassword(oldPassword: String!, newPassword: String!): Response!
-  addFriend(friendId: ID!): Response!
-  confirmFriend(friendId: ID!): Response!
-  unFriend(friendId: ID!): Response!
+  register(registerInput: registerInput!): UserResponse!
+  login(loginInput: loginInput!): AuthResponse!
+  logout: MessageResponse!
+  updateUser(userInput: registerInput!): UserResponse!
+  changePassword(oldPassword: String!, newPassword: String!): MessageResponse!
+  addFriend(friendId: ID!): MessageResponse!
+  confirmFriend(friendId: ID!): MessageResponse!
+  unFriend(friendId: ID!): MessageResponse!
   # createPost(postInput: postInput!): PostResponse!
   # updatePost(postId: ID!, postInput: postInput!): PostResponse!
   # handleLikePost(postId: ID!): BaseResponse!
@@ -49,12 +49,19 @@ input postInput {
 #   media: [String]
 # }
 
-type ErrorResponse {
+union AuthResponse = Auth | MessageResponse
+union UserResponse = User | MessageResponse
+union AllUserResponse = AllUser | MessageResponse
+
+type MessageResponse {
   code: String!
   message: String!
 }
 
-union Response = User | ErrorResponse
+type AllUser {
+  totalUser: Int!
+  users: [User]!
+}
 
 # type CommentResponse implements Response {
 #   code: String!
@@ -63,6 +70,12 @@ union Response = User | ErrorResponse
 #   comment: Comment
 # }
 
+type Auth {
+  user: User!
+  token: String!
+  refreshToken: String!
+}
+
 type User {
   id: ID!
   name: String!
@@ -70,13 +83,18 @@ type User {
   ava: String
   phone: String
   address: String
-  token: String
-  refreshToken: String
   createdAt: Date!
   updatedAt: Date!
-  friendRequestList: [User]
-  friendList: [User]
+  friendList: [Friend]
   posts: [Post]
+}
+
+type Friend {
+  _id: ID!
+  name: String!
+  email: String!
+  ava: String
+  status: String!
 }
 
 type BaseComment {

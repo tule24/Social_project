@@ -1,5 +1,5 @@
 const User = require('../../models/User')
-const { checkPassword, createRefreshJWT, createJWT } = require('../../helpers/authHelper')
+const { checkPassword, createRefreshJWT, createJWT, checkAuth } = require('../../helpers/authHelper')
 const GraphError = require('../../errors')
 
 const authMethod = {
@@ -29,7 +29,6 @@ const authMethod = {
             address: props.address || ""
         })
 
-        delete newUser.password
         return newUser
     },
     login: async ({ email, password }) => {
@@ -59,21 +58,16 @@ const authMethod = {
         user.refreshToken = createRefreshJWT(user._id)
         await user.save()
 
-        delete user.password
-        user.token = createJWT(user._id)
-        return user
-    },
-    logout: async ({ _id }) => {
-        const user = await User.findById(_id)
-        if (!user) {
-            throw GraphError(
-                "User not found",
-                "NOT_FOUND"
-            )
+        return {
+            user,
+            token: createJWT(user._id),
+            refreshToken: user.refreshToken
         }
+    },
+    logout: async (req) => {
+        const user = await checkAuth(req)
         user.refreshToken = null
         await user.save()
-        return user
     }
 }
 

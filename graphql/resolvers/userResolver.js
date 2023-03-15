@@ -1,44 +1,33 @@
-const { checkAuth } = require('../../helpers/authHelper')
 const catchAsync = require('../../helpers/catchAsync')
 const userResolver = {
     Query: {
         users: catchAsync(async (_, __, { dbMethods, req }) => {
-            await checkAuth(req)
-            return await dbMethods.getAllUser()
+            return await dbMethods.getAllUser(req)
         }),
-        user: catchAsync(async (_, { id }, { dbMethods, req }) => {
-            await checkAuth(req)
-            return await dbMethods.getUserById(id)
+        user: catchAsync(async (_, { userId }, { dbMethods, req }) => {
+            return await dbMethods.getUserById(req, userId)
         })
     },
     Mutation: {
         updateUser: catchAsync(async (_, { userInput }, { dbMethods, req }) => {
-            const user = await checkAuth(req)
-            return await dbMethods.updateUser(user, userInput)
+            return await dbMethods.updateUser(req, userInput)
         }),
         changePassword: catchAsync(async (_, { oldPassword, newPassword }, { dbMethods, req }) => {
-            const user = await checkAuth(req)
-            return await dbMethods.changePassword(user, oldPassword, newPassword)
+            return await dbMethods.changePassword(req, oldPassword, newPassword)
         }),
         addFriend: catchAsync(async (_, { friendId }, { dbMethods, req }) => {
-            const user = await checkAuth(req)
-            return await dbMethods.handleAddFriend(user, friendId)
+            return await dbMethods.handleAddFriend(req, friendId)
         }),
         confirmFriend: catchAsync(async (_, { friendId }, { dbMethods, req }) => {
-            const user = await checkAuth(req)
-            return await dbMethods.handleConfirmFriend(user, friendId)
+            return await dbMethods.handleConfirmFriend(req, friendId)
         }),
         unFriend: catchAsync(async (_, { friendId }, { dbMethods, req }) => {
-            const user = await checkAuth(req)
-            return await dbMethods.handleUnFriend(user, friendId)
+            return await dbMethods.handleUnFriend(req, friendId)
         }),
     },
     User: {
-        friendRequestList: catchAsync(async ({ friendsRequest }, _, { dbMethods }) => {
-            return await dbMethods.getFriends(friendsRequest)
-        }),
-        friendList: catchAsync(async ({ friends }, _, { dbMethods }) => {
-            return await dbMethods.getFriends(friends)
+        friendList: catchAsync(async ({ id }, _, { dbMethods }) => {
+            return await dbMethods.getFriends(id)
         }),
         // posts: ({ id }, _, { dbMethods }) => {
         //     return dbMethods.getPostsOfUser(id)

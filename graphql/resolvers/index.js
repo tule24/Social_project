@@ -14,18 +14,6 @@ const dateResolver = new GraphQLScalarType({
     }
 })
 const resolvers = {
-    Date: dateResolver,
-    Response: {
-        __resolveType(obj) {
-            if (obj.code) {
-                return 'ErrorResponse'
-            }
-            if (obj.email) {
-                return 'User'
-            }
-            return null
-        }
-    },
     Query: {
         ...userResolver.Query,
         ...postResolver.Query
@@ -45,6 +33,40 @@ const resolvers = {
     },
     Comment: {
         ...commentResolver.Comment
+    },
+    Date: dateResolver,
+    AuthResponse: {
+        __resolveType(obj) {
+            if (obj.code) {
+                return 'MessageResponse'
+            }
+            if (obj.token) {
+                return 'Auth'
+            }
+            return null
+        }
+    },
+    UserResponse: {
+        __resolveType(obj) {
+            if (obj.code) {
+                return 'MessageResponse'
+            }
+            if (obj.email) {
+                return 'User'
+            }
+            return null
+        }
+    },
+    AllUserResponse: {
+        __resolveType(obj) {
+            if (obj.code) {
+                return 'MessageResponse'
+            }
+            if (obj.totalUser) {
+                return 'AllUser'
+            }
+            return null
+        }
     }
 }
 

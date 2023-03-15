@@ -24,17 +24,22 @@ const userSchema = new Schema({
             message: "Email invalid"
         }
     },
-    friendsRequest: [{
-        type: Schema.Types.ObjectId,
-        ref: 'users'
-    }],
-    friends: [{
-        type: Schema.Types.ObjectId,
-        ref: 'users'
-    }],
     ava: String,
     phone: String,
     address: String,
+    friends: [
+        {
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'users'
+            },
+            status: {
+                type: String,
+                require: [true, 'Please provide status friend'],
+                enum: ['waiting', 'request', 'confirm']
+            }
+        }
+    ],
     refreshToken: String,
     passwordChangedAt: Date,
     passwordResetToken: String,

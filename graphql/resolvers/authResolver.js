@@ -1,5 +1,4 @@
 const catchAsync = require('../../helpers/catchAsync')
-const { checkAuth } = require('../../helpers/authHelper')
 
 const authResolver = {
     Mutation: {
@@ -8,13 +7,15 @@ const authResolver = {
             return user
         }),
         login: catchAsync(async (_, { loginInput }, { dbMethods }) => {
-            const user = await dbMethods.login(loginInput)
-            return user
+            const auth = await dbMethods.login(loginInput)
+            return auth
         }),
         logout: catchAsync(async (_, __, { dbMethods, req }) => {
-            const auth = await checkAuth(req)
-            const user = await dbMethods.logout(auth)
-            return user
+            await dbMethods.logout(req)
+            return {
+                code: "OK",
+                message: "Logout success"
+            }
         })
     }
 }

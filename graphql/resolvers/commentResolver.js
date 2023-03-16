@@ -18,7 +18,7 @@ const commentMutation = {
     }),
     handleLikeComment: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.handleLikeComment(user, args)
+        return await dbMethods.handleLikeComment(user, commentId)
     }),
 
     createReplies: catchAsync(async (_, { commentId, repliesInput }, { dbMethods, req }) => {
@@ -35,7 +35,7 @@ const commentMutation = {
     }),
     handleLikeReplies: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.handleLikeReplies(user, args)
+        return await dbMethods.handleLikeReplies(user, commentId, repliesId)
     }),
 }
 

@@ -12,7 +12,7 @@ const dateResolver = new GraphQLScalarType({
 
 const resolveType = (obj, type) => {
     if (obj.code) {
-        return 'MessageResponse'
+        return 'MsgResponse'
     }
     return type
 }
@@ -37,11 +37,6 @@ const typeResolver = {
     PostResponse: {
         __resolveType(obj) {
             return resolveType(obj, 'Post')
-        }
-    },
-    AllPostResponse: {
-        __resolveType(obj) {
-            return resolveType(obj, 'AllPost')
         }
     },
     CommentResponse: {

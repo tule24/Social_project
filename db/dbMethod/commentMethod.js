@@ -6,8 +6,8 @@ const { checkFound } = require('../../helpers/methodHelper')
 const commentMethod = {
     // handle query
     getCommentsOfPost: async (postId) => {
-        const commentList = await Comment.find({ postId })
-        return commentList
+        const commentsList = await Comment.find({ postId })
+        return commentsList
     },
     // handle mutation
     createComment: async (user, postId, { content, media }) => {
@@ -51,6 +51,9 @@ const commentMethod = {
         comment.like = comment.like.filter(el => el !== user._id)
         if (oldLength === comment.like.length) {
             comment.like.push(user._id)
+            comment.totalLike += 1
+        } else {
+            comment.totalLike -= 1
         }
 
         await comment.save()
@@ -152,6 +155,9 @@ const commentMethod = {
         replies[i].like = replies[i].like.filter(el => el !== user._id)
         if (oldLength === replies[i].like.length) {
             replies[i].like.push(user._id)
+            replies[i].totalLike += 1
+        } else {
+            replies[i].totalLike -= 1
         }
 
         comment.replies = replies

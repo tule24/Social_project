@@ -19,7 +19,10 @@ const postMethod = {
         const posts = await Post.find({ creatorId: id })
         return posts
     },
-
+    getPostById: async (postId) => {
+        const post = await Post.findById(postId)
+        return post
+    },
     // handle mutation
     createPost: async (user, { content, media, vision }) => {
         if (!content) {
@@ -56,6 +59,9 @@ const postMethod = {
         post.like = post.like.filter(el => !el.equals(user._id))
         if (oldLength === post.like.length) {
             post.like.push(user._id)
+            post.totalLike += 1
+        } else {
+            post.totalLike -= 1
         }
 
         await post.save()

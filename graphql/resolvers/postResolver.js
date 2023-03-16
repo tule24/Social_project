@@ -1,7 +1,12 @@
 const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
 
-const postQuery = {}
+const postQuery = {
+    post: catchAsync(async (_, { postId }, { dbMethods, req }) => {
+        await checkAuth(req)
+        return await dbMethods.getPostById(postId)
+    }),
+}
 
 const postMutation = {
     createPost: catchAsync(async (_, { postInput }, { dbMethods, req }) => {

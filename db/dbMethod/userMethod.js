@@ -23,8 +23,9 @@ const userMethod = {
         })
         return formatFriends
     },
-    getAllUser: async () => {
-        const users = await User.find()
+    getAllUser: async (user) => {
+        const friendIds = user.friends.map(el => el.userId)
+        const users = await User.find({ _id: { $nin: [...friendIds] } })
         return {
             totalUser: users.length,
             users

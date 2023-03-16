@@ -24,6 +24,10 @@ const postSchema = new Schema({
         enum: ['private', 'public', 'friend'],
         default: 'friend'
     },
+    totalLike: {
+        type: Number,
+        default: 0
+    },
     totalComment: {
         type: Number,
         default: 0

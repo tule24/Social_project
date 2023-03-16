@@ -3,8 +3,8 @@ const { checkAuth } = require('../../helpers/authHelper')
 
 const userQuery = {
     users: catchAsync(async (_, __, { dbMethods, req }) => {
-        await checkAuth(req)
-        return await dbMethods.getAllUser()
+        const user = await checkAuth(req)
+        return await dbMethods.getAllUser(user)
     }),
     user: catchAsync(async (_, { userId }, { dbMethods, req }) => {
         await checkAuth(req)

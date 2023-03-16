@@ -1,37 +1,37 @@
 type Query {
   users: AllUserResponse!
   user(userId: ID!): UserResponse!
-  postById(postId: ID!): PostResponse!
+  post(postId: ID!): PostResponse!
 }
 
 type Mutation {
   #authMutation
   register(registerInput: registerInput!): UserResponse!
   login(loginInput: loginInput!): AuthResponse!
-  logout: MessageResponse!
+  logout: MsgResponse!
 
   #userMutation
   updateUser(userInput: registerInput!): UserResponse!
-  changePassword(oldPassword: String, newPassword: String): UserResponse!
-  addFriend(friendId: ID): UserResponse!
-  confirmFriend(friendId: ID): UserResponse!
-  unFriend(friendId: ID): UserResponse!
+  changePassword(oldPassword: String!, newPassword: String!): UserResponse!
+  addFriend(friendId: ID!): UserResponse!
+  confirmFriend(friendId: ID!): UserResponse!
+  unFriend(friendId: ID!): UserResponse!
 
   #postMutation
   createPost(postInput: postInput!): PostResponse!
-  updatePost(postId: ID, postInput: postInput!): PostResponse!
-  deletePost(postId: ID): PostResponse!
-  handleLikePost(postId: ID): PostResponse!
+  updatePost(postId: ID!, postInput: postInput!): PostResponse!
+  deletePost(postId: ID!): PostResponse!
+  handleLikePost(postId: ID!): PostResponse!
 
   #commentMutation
-  createComment(postId: ID, commentInput: commentInput!): CommentResponse!
-  updateComment(commentId: ID, commentInput: commentInput!): CommentResponse!
-  deleteComment(commentId: ID): CommentResponse!
-  handleLikeComment(commentId: ID): CommentResponse!
-  createReplies(commentId: ID, repliesInput: commentInput!): CommentResponse!
-  updateReplies(commentId: ID, repliesId: ID, repliesInput: commentInput!): CommentResponse!
-  handleLikeReplies(commentId: ID, repliesId: ID): CommentResponse!
-  deleteReplies(commentId: ID, repliesId: ID): CommentResponse!
+  createComment(postId: ID!, commentInput: commentInput!): CommentResponse!
+  updateComment(commentId: ID!, commentInput: commentInput!): CommentResponse!
+  deleteComment(commentId: ID!): CommentResponse!
+  handleLikeComment(commentId: ID!): CommentResponse!
+  createReplies(commentId: ID!, repliesInput: commentInput!): CommentResponse!
+  updateReplies(commentId: ID!, repliesId: ID!, repliesInput: commentInput!): CommentResponse!
+  handleLikeReplies(commentId: ID!, repliesId: ID!): CommentResponse!
+  deleteReplies(commentId: ID!, repliesId: ID!): CommentResponse!
 }
 
 scalar Date
@@ -63,15 +63,14 @@ input commentInput {
 }
 
 #union type
-union AuthResponse = Auth | MessageResponse
-union UserResponse = User | MessageResponse
-union AllUserResponse = AllUser | MessageResponse
-union PostResponse = Post | MessageResponse
-union AllPostResponse = AllPost | MessageResponse
-union CommentResponse = Comment | MessageResponse
+union AuthResponse = Auth | MsgResponse
+union UserResponse = User | MsgResponse
+union AllUserResponse = AllUser | MsgResponse
+union PostResponse = Post | MsgResponse
+union CommentResponse = Comment | MsgResponse
 
 #basic type
-type MessageResponse {
+type MsgResponse {
   code: String!
   message: String!
 }
@@ -114,6 +113,7 @@ type Post {
   creator: User!
   content: String
   media: [String]
+  totalLike: Int!
   userLike: [User]!
   vision: String!
   totalComment: Int!
@@ -132,6 +132,7 @@ type Replies {
   content: String!
   media: [String]
   createdAt: Date!
+  totalLike: Int!
   userLike: [User]!
 }
 
@@ -141,6 +142,7 @@ type Comment {
   content: String!
   media: [String]
   createdAt: Date!
+  totalLike: Int!
   userLike: [User]!
   replies: [Replies]
 }

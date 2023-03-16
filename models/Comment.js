@@ -18,6 +18,10 @@ const commentSchema = new Schema({
     media: [{
         type: String
     }],
+    totalLike: {
+        type: Number,
+        default: 0
+    },
     like: [{
         type: Schema.Types.ObjectId,
         ref: 'users'
@@ -37,6 +41,10 @@ const commentSchema = new Schema({
             media: [{
                 type: String
             }],
+            totalLike: {
+                type: Number,
+                default: 0
+            },
             like: [{
                 type: Schema.Types.ObjectId,
                 ref: 'users'

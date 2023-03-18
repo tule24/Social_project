@@ -37,15 +37,15 @@ const userMutation = {
 
 const userResolver = {
     User: {
+        friendConfirm: catchAsync(async ({ id }, _, { dbMethods }) => {
+            return await dbMethods.getFriendsConfirm(id)
+        }),
         friendList: catchAsync(async ({ id }, _, { dbMethods }) => {
             return await dbMethods.getFriends(id)
         }),
         postsOfUser: ({ id }, _, { dbMethods }) => {
             return dbMethods.getPostsOfUser(id)
-        },
-        postsForUser: (async (user, _, { dbMethods }) => {
-            return await dbMethods.getPostsForUser(user)
-        })
+        }
     }
 }
 

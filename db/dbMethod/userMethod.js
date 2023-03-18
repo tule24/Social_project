@@ -17,9 +17,16 @@ const userMethod = {
         return []
     },
     getFriends: async (userId) => {
-        const { friends } = await User.findById(userId).select('friends').populate({ path: "friends.userId", select: "_id name email ava" })
+        const { friends } = await User.findById(userId).select('friends').populate({ path: "friends.userId", select: "_id name ava" })
         const formatFriends = friends.map(el => {
             return { ...el.userId._doc, status: el.status }
+        })
+        return formatFriends
+    },
+    getFriendsConfirm: async (userId) => {
+        const { friends } = await User.findById(userId).select('friends').populate({ path: "friends.userId", select: "_id name ava" })
+        const formatFriends = friends.filter(el => el.status === 'confirm').map(el => {
+            return { ...el.userId._doc }
         })
         return formatFriends
     },

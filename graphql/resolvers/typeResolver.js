@@ -34,6 +34,11 @@ const typeResolver = {
             return resolveType(obj, 'AllUser')
         }
     },
+    AllPostResponse: {
+        __resolveType(obj) {
+            return resolveType(obj, 'AllPost')
+        }
+    },
     PostResponse: {
         __resolveType(obj) {
             return resolveType(obj, 'Post')

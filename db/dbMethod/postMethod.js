@@ -5,14 +5,14 @@ const { checkFound } = require('../../helpers/methodHelper')
 
 const postMethod = {
     // handle query
-    getPostsForUser: async (user) => {
+    getPostsForUser: async (user, page) => {
         const friendIds = user.friends.filter(el => el.status === 'confirm').map(el => el.userId)
         const posts = await Post.find({
             $or: [
                 { creatorId: { $in: [user._id, ...friendIds] } },
                 { vision: 'public' }
             ]
-        })
+        }).skip((page - 1) * 10).limit(10)
         return posts
     },
     getPostsOfUser: async (id) => {

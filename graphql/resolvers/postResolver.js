@@ -6,6 +6,10 @@ const postQuery = {
         await checkAuth(req)
         return await dbMethods.getPostById(postId)
     }),
+    postForUser: catchAsync(async (_, { page }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.getPostsForUser(user, page)
+    }),
 }
 
 const postMutation = {

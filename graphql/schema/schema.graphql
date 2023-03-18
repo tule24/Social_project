@@ -2,6 +2,7 @@ type Query {
   users: AllUserResponse!
   user(userId: ID!): UserResponse!
   post(postId: ID!): PostResponse!
+  postForUser(page: Int!): AllPostResponse!
 }
 
 type Mutation {
@@ -67,6 +68,7 @@ union AuthResponse = Auth | MsgResponse
 union UserResponse = User | MsgResponse
 union AllUserResponse = AllUser | MsgResponse
 union PostResponse = Post | MsgResponse
+union AllPostResponse = AllPost | MsgResponse
 union CommentResponse = Comment | MsgResponse
 
 #basic type
@@ -86,6 +88,10 @@ type AllUser {
   users: [User]!
 }
 
+type AllPost {
+  posts: [Post]!
+}
+
 type User {
   id: ID!
   name: String!
@@ -95,9 +101,9 @@ type User {
   address: String
   createdAt: Date!
   updatedAt: Date!
+  friendConfirm: [Friend]
   friendList: [Friend]
   postsOfUser: [Post]
-  postsForUser: [Post]
 }
 
 type Friend {
@@ -119,11 +125,6 @@ type Post {
   totalComment: Int!
   commentList: [Comment]
   createdAt: Date!
-}
-
-type AllPost {
-  totalPost: Int!
-  posts: [Post]!
 }
 
 type Replies {

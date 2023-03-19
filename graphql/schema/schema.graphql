@@ -3,6 +3,7 @@ type Query {
   user(userId: ID!): UserResponse!
   post(postId: ID!): PostResponse!
   postForUser(page: Int!): AllPostResponse!
+  getMessageRoom(roomId: ID!): MessageRoomReponse!
 }
 
 type Mutation {
@@ -30,9 +31,23 @@ type Mutation {
   deleteComment(commentId: ID!): CommentResponse!
   handleLikeComment(commentId: ID!): CommentResponse!
   createReplies(commentId: ID!, repliesInput: commentInput!): CommentResponse!
-  updateReplies(commentId: ID!, repliesId: ID!, repliesInput: commentInput!): CommentResponse!
+  updateReplies(
+    commentId: ID!
+    repliesId: ID!
+    repliesInput: commentInput!
+  ): CommentResponse!
   handleLikeReplies(commentId: ID!, repliesId: ID!): CommentResponse!
   deleteReplies(commentId: ID!, repliesId: ID!): CommentResponse!
+
+  #messageMutation
+  createMessage(roomId: ID!, content: String!): MessageReponse!
+  createMessageRoom(users: [ID!]!): MessageRoomReponse!
+  deleteMessageRoom(roomId: ID!): MessageRoomReponse!
+  leaveMessageRoom(roomId: ID!): MessageRoomReponse!
+}
+
+type Subscription {
+  messageCreated: MessageReponse!
 }
 
 scalar Date
@@ -70,6 +85,8 @@ union AllUserResponse = AllUser | MsgResponse
 union PostResponse = Post | MsgResponse
 union AllPostResponse = AllPost | MsgResponse
 union CommentResponse = Comment | MsgResponse
+union MessageRoomReponse = MessageRoom | MsgResponse
+union MessageReponse = Message | MsgResponse
 
 #basic type
 type MsgResponse {
@@ -104,12 +121,24 @@ type User {
   friendConfirm: [Friend]
   friendList: [Friend]
   postsOfUser: [Post]
+  messageRoomOfUser: [MessageRoom]
+}
+
+type Message {
+  user: User!
+  content: String!
+  createdAt: Date!
+}
+
+type MessageRoom {
+  id: ID!
+  users: [User]!
+  message: [Message]!
 }
 
 type Friend {
   _id: ID!
   name: String!
-  email: String!
   ava: String
   status: String!
 }

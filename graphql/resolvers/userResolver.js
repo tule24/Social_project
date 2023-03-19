@@ -45,6 +45,9 @@ const userResolver = {
         }),
         postsOfUser: ({ id }, _, { dbMethods }) => {
             return dbMethods.getPostsOfUser(id)
+        },
+        messageRoomOfUser: ({ messageRooms }, _, { dbMethods }) => {
+            return dbMethods.getMessageOfUser(messageRooms)
         }
     }
 }

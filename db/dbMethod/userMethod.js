@@ -1,4 +1,5 @@
 const User = require('../../models/User')
+const Message = require('../../models/Message')
 const GraphError = require('../../errors')
 const { checkPassword } = require('../../helpers/authHelper')
 const { updateId, addId, checkFound, removeId } = require('../../helpers/methodHelper')
@@ -28,6 +29,7 @@ const userMethod = {
         const formatFriends = friends.filter(el => el.status === 'confirm').map(el => {
             return { ...el.userId._doc }
         })
+
         return formatFriends
     },
     getAllUser: async (user) => {
@@ -83,6 +85,14 @@ const userMethod = {
         user.friends = updateId(user.friends, friendId, 'confirm')
         friend.friends = updateId(friend.friends, user._id, 'confirm')
 
+        const newMessageRoom = new Message({
+            users: [user._id, friendId],
+            messages: []
+        })
+        await newMessageRoom.save()
+
+        user.messageRooms.push(newMessageRoom._id)
+        friend.messageRooms.push(newMessageRoom._id)
         await user.save()
         await friend.save()
 

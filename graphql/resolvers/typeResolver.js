@@ -48,6 +48,16 @@ const typeResolver = {
         __resolveType(obj) {
             return resolveType(obj, 'Comment')
         }
+    },
+    MessageRoomReponse: {
+        __resolveType(obj) {
+            return resolveType(obj, 'MessageRoom')
+        }
+    },
+    MessageReponse: {
+        __resolveType(obj) {
+            return resolveType(obj, 'Message')
+        }
     }
 }
 

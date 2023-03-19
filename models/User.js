@@ -40,6 +40,12 @@ const userSchema = new Schema({
             }
         }
     ],
+    messageRooms: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'messages'
+        }
+    ],
     refreshToken: String,
     passwordChangedAt: Date,
     passwordResetToken: String,

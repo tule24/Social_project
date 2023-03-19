@@ -25,6 +25,7 @@ const authMethod = {
             password,
             email,
             friends: [],
+            dob: props.dob ? Date.parse(props.dob) : Date.parse("2000-01-01"),
             ava: props.ava || "",
             phone: props.phone || "",
             address: props.address || ""

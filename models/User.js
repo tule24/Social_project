@@ -7,7 +7,7 @@ const userSchema = new Schema({
         type: String,
         require: [true, "Please provide your name"],
         trim: true,
-        minLength: [6, "Name length >= 6"],
+        minLength: [3, "Name length >= 3"],
         maxLength: [32, "Name length < 32"]
     },
     password: {
@@ -24,6 +24,7 @@ const userSchema = new Schema({
             message: "Email invalid"
         }
     },
+    dob: Date,
     ava: String,
     phone: String,
     address: String,

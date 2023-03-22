@@ -10,55 +10,8 @@ const dateResolver = new GraphQLScalarType({
     }
 })
 
-const resolveType = (obj, type) => {
-    if (obj.code) {
-        return 'MsgResponse'
-    }
-    return type
-}
-
 const typeResolver = {
-    Date: dateResolver,
-    AuthResponse: {
-        __resolveType(obj) {
-            return resolveType(obj, 'Auth')
-        }
-    },
-    UserResponse: {
-        __resolveType(obj) {
-            return resolveType(obj, 'User')
-        }
-    },
-    AllUserResponse: {
-        __resolveType(obj) {
-            return resolveType(obj, 'AllUser')
-        }
-    },
-    AllPostResponse: {
-        __resolveType(obj) {
-            return resolveType(obj, 'AllPost')
-        }
-    },
-    PostResponse: {
-        __resolveType(obj) {
-            return resolveType(obj, 'Post')
-        }
-    },
-    CommentResponse: {
-        __resolveType(obj) {
-            return resolveType(obj, 'Comment')
-        }
-    },
-    MessageRoomReponse: {
-        __resolveType(obj) {
-            return resolveType(obj, 'MessageRoom')
-        }
-    },
-    MessageReponse: {
-        __resolveType(obj) {
-            return resolveType(obj, 'Message')
-        }
-    }
+    Date: dateResolver
 }
 
 module.exports = { typeResolver }

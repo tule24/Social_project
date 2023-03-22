@@ -24,23 +24,16 @@ const userMethod = {
         })
         return formatFriends
     },
-    getFriendsConfirm: async (userId) => {
-        const { friends } = await User.findById(userId).select('friends').populate({ path: "friends.userId", select: "_id name ava" })
-        const formatFriends = friends.filter(el => el.status === 'confirm').map(el => {
-            return { ...el.userId._doc }
-        })
-
-        return formatFriends
+    getTotalFriend: async (userId) => {
+        const { friends } = await User.findById(userId).select('friends').populate({ path: "friends.userId" })
+        const newFriends = friends.filter(el => el.status === 'confirm')
+        return newFriends.length
     },
     getAllUser: async (user) => {
         const friendIds = user.friends.map(el => el.userId)
         const users = await User.find({ _id: { $nin: [...friendIds] } })
-        return {
-            totalUser: users.length,
-            users
-        }
+        return users
     },
-
     // handle mutation
     updateUser: async (user, userInput) => {
         if (userInput.password) {

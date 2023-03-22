@@ -1,7 +1,16 @@
 const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
 
-const commentQuery = {}
+const commentQuery = {
+    commentOfPost: catchAsync(async (_, { postId, page }, { dbMethods, req }) => {
+        await checkAuth(req)
+        return await dbMethods.getCommentsOfPost(postId, page)
+    }),
+    repliesOfComment: catchAsync(async (_, { commentId, page }, { dbMethods, req }) => {
+        await checkAuth(req)
+        return await dbMethods.getCommentsOfPost(commentId, page)
+    }),
+}
 
 const commentMutation = {
     createComment: catchAsync(async (_, { postId, commentInput }, { dbMethods, req }) => {
@@ -46,7 +55,14 @@ const commentResolver = {
         }),
         userLike: catchAsync(({ like }, _, { dbMethods }) => {
             return dbMethods.getUserLike(like)
-        })
+        }),
+        totalReplies: ({ replies }) => {
+            return replies.length
+        },
+        totalLike: ({ like }) => {
+            return like.length
+        },
+
     },
     Replies: {
         creator: catchAsync(({ creatorId }, _, { dbMethods }) => {
@@ -55,6 +71,9 @@ const commentResolver = {
         userLike: catchAsync(({ like }, _, { dbMethods }) => {
             return dbMethods.getUserLike(like)
         }),
+        totalLike: ({ like }) => {
+            return like.length
+        },
     }
 }
 

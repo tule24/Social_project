@@ -2,7 +2,7 @@ const Post = require('../../models/Post')
 const Comment = require('../../models/Comment')
 const GraphError = require('../../errors')
 const { checkFound } = require('../../helpers/methodHelper')
-
+const uploadImage = require('./uploadImage')
 const postMethod = {
     // handle query
     getPostsForUser: async (user, page) => {
@@ -12,16 +12,20 @@ const postMethod = {
                 { creatorId: { $in: [user._id, ...friendIds] } },
                 { vision: 'public' }
             ]
-        }).skip((page - 1) * 10).limit(10)
+        }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
         return posts
     },
-    getPostsOfUser: async (id) => {
-        const posts = await Post.find({ creatorId: id })
+    getPostsOfUser: async (userId, page) => {
+        const posts = await Post.find({ creatorId: userId }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
         return posts
     },
     getPostById: async (postId) => {
         const post = await Post.findById(postId)
         return post
+    },
+    getTotalPost: async (userId) => {
+        const posts = await Post.find({ creatorId: userId })
+        return posts.length
     },
     // handle mutation
     createPost: async (user, { content, media, vision }) => {
@@ -32,11 +36,12 @@ const postMethod = {
             )
         }
 
+        const newMedia = media ? await uploadImage(media) : []
         const newPost = new Post({
             creatorId: user._id,
             content,
-            media: media || [],
-            vision: vision || "friend"
+            media: newMedia,
+            vision: vision || "public"
         })
 
         await newPost.save()
@@ -54,7 +59,6 @@ const postMethod = {
     },
     handleLikePost: async (user, postId) => {
         const post = await checkFound(postId, Post)
-
         const oldLength = post.like.length
         post.like = post.like.filter(el => !el.equals(user._id))
         if (oldLength === post.like.length) {

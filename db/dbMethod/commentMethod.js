@@ -5,9 +5,14 @@ const { checkFound } = require('../../helpers/methodHelper')
 
 const commentMethod = {
     // handle query
-    getCommentsOfPost: async (postId) => {
-        const commentsList = await Comment.find({ postId })
-        return commentsList
+    getCommentsOfPost: async (postId, page) => {
+        const comments = await Comment.find({ postId }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
+        return comments
+    },
+    getRepliesOfComment: async (commentId, page) => {
+        const comment = await checkFound(commentId)
+        const { replies } = comment
+        return replies.slice((page- 1)* 10, page)
     },
     // handle mutation
     createComment: async (user, postId, { content, media }) => {
@@ -46,7 +51,6 @@ const commentMethod = {
     },
     handleLikeComment: async (user, commentId) => {
         const comment = await checkFound(commentId, Comment)
-
         const oldLength = comment.like.length
         comment.like = comment.like.filter(el => el !== user._id)
         if (oldLength === comment.like.length) {
@@ -74,7 +78,6 @@ const commentMethod = {
 
         return comment
     },
-
     createReplies: async (user, commentId, { content, media }) => {
         const comment = await checkFound(commentId, Comment)
         if (!content) {
@@ -93,7 +96,7 @@ const commentMethod = {
 
         comment.replies.push(replies)
         await comment.save()
-        return comment
+        return replies
     },
     updateReplies: async (user, commentId, repliesId, repliesInput) => {
         const comment = await checkFound(commentId, Comment)
@@ -116,29 +119,29 @@ const commentMethod = {
         replies[i] = { ...replies[i], ...repliesInput }
         comment.replies = replies
         await comment.save()
-        return comment
+        return replies[i]
     },
     deleteReplies: async (user, commentId, repliesId) => {
         const comment = await checkFound(commentId, Comment)
-        const index = comment.replies.findIndex(el => el._id.equals(repliesId))
+        const i = comment.replies.findIndex(el => el._id.equals(repliesId))
 
-        if (index < 0) {
+        if (i < 0) {
             throw GraphError(
                 "Replies not found",
                 "NOT_FOUND"
             )
         }
 
-        if (comment.replies[index].creatorId !== user._id) {
+        if (comment.replies[i].creatorId !== user._id) {
             throw GraphError(
                 "You aren't replies owner",
                 "UNAUTHORIZED"
             )
         }
 
-        comment.replies.splice(index, 1)
+        const result = comment.replies.splice(i, 1)
         await comment.save()
-        return comment
+        return result[0]
     },
     handleLikeReplies: async (user, commentId, repliesId) => {
         const comment = await checkFound(commentId, Comment)
@@ -162,7 +165,7 @@ const commentMethod = {
 
         comment.replies = replies
         await comment.save()
-        return comment
+        return replies[i]
     }
 }
 

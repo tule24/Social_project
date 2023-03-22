@@ -1,53 +1,52 @@
 type Query {
-  users: AllUserResponse!
-  user(userId: ID!): UserResponse!
-  post(postId: ID!): PostResponse!
-  postForUser(page: Int!): AllPostResponse!
-  getMessageRoom(roomId: ID!): MessageRoomReponse!
+  users: [User]!
+  user(userId: ID): User!
+  post(postId: ID!): Post!
+  postOfUser(userId: ID!, page: Int!): [Post]!
+  postForUser(page: Int!): [Post]!
+  commentOfPost(postId: ID!, page: Int!): [Comment]!
+  repliesOfComment(commentId: ID!, page: Int!): [Replies]!
+  getMessageRoom(roomId: ID!, page: Int!): MessageRoom!
 }
 
 type Mutation {
   #authMutation
-  register(registerInput: registerInput!): UserResponse!
-  login(loginInput: loginInput!): AuthResponse!
-  logout: MsgResponse!
+  register(registerInput: registerInput!): User!
+  login(loginInput: loginInput!): Auth!
+  logout: String!
 
   #userMutation
-  updateUser(userInput: registerInput!): UserResponse!
-  changePassword(oldPassword: String!, newPassword: String!): UserResponse!
-  addFriend(friendId: ID!): UserResponse!
-  confirmFriend(friendId: ID!): UserResponse!
-  unFriend(friendId: ID!): UserResponse!
+  updateUser(userInput: registerInput!): User!
+  changePassword(oldPassword: String!, newPassword: String!): User!
+  addFriend(friendId: ID!): User!
+  confirmFriend(friendId: ID!): User!
+  unFriend(friendId: ID!): User!
 
   #postMutation
-  createPost(postInput: postInput!): PostResponse!
-  updatePost(postId: ID!, postInput: postInput!): PostResponse!
-  deletePost(postId: ID!): PostResponse!
-  handleLikePost(postId: ID!): PostResponse!
+  createPost(postInput: postInput!): Post!
+  updatePost(postId: ID!, postInput: postInput!): Post!
+  deletePost(postId: ID!): Post!
+  handleLikePost(postId: ID!): Post!
 
   #commentMutation
-  createComment(postId: ID!, commentInput: commentInput!): CommentResponse!
-  updateComment(commentId: ID!, commentInput: commentInput!): CommentResponse!
-  deleteComment(commentId: ID!): CommentResponse!
-  handleLikeComment(commentId: ID!): CommentResponse!
-  createReplies(commentId: ID!, repliesInput: commentInput!): CommentResponse!
-  updateReplies(
-    commentId: ID!
-    repliesId: ID!
-    repliesInput: commentInput!
-  ): CommentResponse!
-  handleLikeReplies(commentId: ID!, repliesId: ID!): CommentResponse!
-  deleteReplies(commentId: ID!, repliesId: ID!): CommentResponse!
+  createComment(postId: ID!, commentInput: commentInput!): Comment!
+  updateComment(commentId: ID!, commentInput: commentInput!): Comment!
+  deleteComment(commentId: ID!): Comment!
+  handleLikeComment(commentId: ID!): Comment!
+  createReplies(commentId: ID!, repliesInput: commentInput!): Replies!
+  updateReplies(commentId: ID!, repliesId: ID!, repliesInput: commentInput!): Replies!
+  handleLikeReplies(commentId: ID!, repliesId: ID!): Replies!
+  deleteReplies(commentId: ID!, repliesId: ID!): Replies!
 
   #messageMutation
-  createMessage(roomId: ID!, content: String!): MessageReponse!
-  createMessageRoom(users: [ID!]!): MessageRoomReponse!
-  deleteMessageRoom(roomId: ID!): MessageRoomReponse!
-  leaveMessageRoom(roomId: ID!): MessageRoomReponse!
+  createMessage(roomId: ID!, content: String!): Message!
+  createMessageRoom(users: [ID!]!): MessageRoom!
+  deleteMessageRoom(roomId: ID!): MessageRoom!
+  leaveMessageRoom(roomId: ID!): MessageRoom!
 }
 
 type Subscription {
-  messageCreated: MessageReponse!
+  messageCreated: Message!
 }
 
 scalar Date
@@ -79,35 +78,11 @@ input commentInput {
   media: [String]
 }
 
-#union type
-union AuthResponse = Auth | MsgResponse
-union UserResponse = User | MsgResponse
-union AllUserResponse = AllUser | MsgResponse
-union PostResponse = Post | MsgResponse
-union AllPostResponse = AllPost | MsgResponse
-union CommentResponse = Comment | MsgResponse
-union MessageRoomReponse = MessageRoom | MsgResponse
-union MessageReponse = Message | MsgResponse
-
 #basic type
-type MsgResponse {
-  code: String!
-  message: String!
-}
-
 type Auth {
   user: User!
   token: String!
   refreshToken: String!
-}
-
-type AllUser {
-  totalUser: Int!
-  users: [User]!
-}
-
-type AllPost {
-  posts: [Post]!
 }
 
 type User {
@@ -120,10 +95,16 @@ type User {
   dob: Date
   createdAt: Date!
   updatedAt: Date!
-  friendConfirm: [Friend]
+  totalFriend: Int!
+  totalPost: Int!
   friendList: [Friend]
-  postsOfUser: [Post]
   messageRoomOfUser: [MessageRoom]
+}
+type Friend {
+  _id: ID!
+  name: String!
+  ava: String
+  status: String!
 }
 
 type Message {
@@ -131,18 +112,10 @@ type Message {
   content: String!
   createdAt: Date!
 }
-
 type MessageRoom {
   id: ID!
   users: [User]!
   message: [Message]!
-}
-
-type Friend {
-  _id: ID!
-  name: String!
-  ava: String
-  status: String!
 }
 
 type Post {
@@ -154,27 +127,24 @@ type Post {
   userLike: [User]!
   vision: String!
   totalComment: Int!
-  commentList: [Comment]
   createdAt: Date!
-}
-
-type Replies {
-  id: ID!
-  creator: User!
-  content: String!
-  media: [String]
-  createdAt: Date!
-  totalLike: Int!
-  userLike: [User]!
 }
 
 type Comment {
   id: ID!
   creator: User!
   content: String!
-  media: [String]
   createdAt: Date!
   totalLike: Int!
   userLike: [User]!
-  replies: [Replies]
+  totalReplies: Int!
+}
+
+type Replies {
+  id: ID!
+  creator: User!
+  content: String!
+  createdAt: Date!
+  totalLike: Int!
+  userLike: [User]!
 }

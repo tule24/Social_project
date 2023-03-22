@@ -24,7 +24,10 @@ const userSchema = new Schema({
             message: "Email invalid"
         }
     },
-    dob: Date,
+    dob: {
+        type: Date,
+        default: Date.now
+    },
     ava: String,
     phone: String,
     address: String,

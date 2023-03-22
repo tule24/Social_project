@@ -4,7 +4,7 @@ const GraphError = require('../../errors')
 
 const authMethod = {
     // handle mutation
-    regiser: async ({ name, password, email, ...props }) => {
+    regiser: async ({ name, password, email }) => {
         if (!name || !password || !email) {
             throw GraphError(
                 "Please provide name, password & email",
@@ -23,12 +23,7 @@ const authMethod = {
         const newUser = await User.create({
             name,
             password,
-            email,
-            friends: [],
-            dob: props.dob ? Date.parse(props.dob) : Date.parse("2000-01-01"),
-            ava: props.ava || "",
-            phone: props.phone || "",
-            address: props.address || ""
+            email
         })
 
         return newUser

@@ -15,13 +15,6 @@ const commentSchema = new Schema({
         require: [true, "Please provide content"],
         minLength: [1, "Content length > 0"]
     },
-    media: [{
-        type: String
-    }],
-    totalLike: {
-        type: Number,
-        default: 0
-    },
     like: [{
         type: Schema.Types.ObjectId,
         ref: 'users'
@@ -37,13 +30,6 @@ const commentSchema = new Schema({
                 trim: true,
                 require: [true, "Please provide content"],
                 minLength: [1, "Content length > 0"]
-            },
-            media: [{
-                type: String
-            }],
-            totalLike: {
-                type: Number,
-                default: 0
             },
             like: [{
                 type: Schema.Types.ObjectId,

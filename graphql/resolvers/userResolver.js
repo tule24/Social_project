@@ -7,8 +7,9 @@ const userQuery = {
         return await dbMethods.getAllUser(user)
     }),
     user: catchAsync(async (_, { userId }, { dbMethods, req }) => {
-        await checkAuth(req)
-        return await dbMethods.getUserById(userId)
+        const user = await checkAuth(req)
+        const id = userId ? userId : user._id
+        return await dbMethods.getUserById(id)
     })
 }
 
@@ -37,15 +38,15 @@ const userMutation = {
 
 const userResolver = {
     User: {
-        friendConfirm: catchAsync(async ({ id }, _, { dbMethods }) => {
-            return await dbMethods.getFriendsConfirm(id)
+        totalFriend: catchAsync(async ({ id }, _, { dbMethods }) => {
+            return await dbMethods.getTotalFiend(id)
+        }),
+        totalPost: catchAsync(async ({ id }, _, { dbMethods }) => {
+            return await dbMethods.getTotalPost(id)
         }),
         friendList: catchAsync(async ({ id }, _, { dbMethods }) => {
             return await dbMethods.getFriends(id)
         }),
-        postsOfUser: ({ id }, _, { dbMethods }) => {
-            return dbMethods.getPostsOfUser(id)
-        },
         messageRoomOfUser: ({ messageRooms }, _, { dbMethods }) => {
             return dbMethods.getMessageOfUser(messageRooms)
         }

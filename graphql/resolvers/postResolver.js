@@ -10,6 +10,11 @@ const postQuery = {
         const user = await checkAuth(req)
         return await dbMethods.getPostsForUser(user, page)
     }),
+    postOfUser: catchAsync(async (_, { userId, page }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        const id = userId ? userId : user._id
+        return await dbMethods.getPostsOfUser(id, page)
+    })
 }
 
 const postMutation = {
@@ -39,9 +44,9 @@ const postResolver = {
         userLike: catchAsync(({ like }, _, { dbMethods }) => {
             return dbMethods.getUserLike(like)
         }),
-        commentList: catchAsync(({ id }, _, { dbMethods }) => {
-            return dbMethods.getCommentsOfPost(id)
-        })
+        totalLike: ({ like }) => {
+            return like.length
+        }
     }
 }
 

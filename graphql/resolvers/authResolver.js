@@ -11,10 +11,7 @@ const authMutation = {
     }),
     logout: catchAsync(async (_, __, { dbMethods, req }) => {
         await dbMethods.logout(req)
-        return {
-            code: "OK",
-            message: "Logout success"
-        }
+        return "Logout success"
     })
 }
 

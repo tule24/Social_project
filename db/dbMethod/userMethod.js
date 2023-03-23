@@ -24,11 +24,6 @@ const userMethod = {
         })
         return formatFriends
     },
-    getTotalFriend: async (userId) => {
-        const { friends } = await User.findById(userId).select('friends').populate({ path: "friends.userId" })
-        const newFriends = friends.filter(el => el.status === 'confirm')
-        return newFriends.length
-    },
     getAllUser: async (user) => {
         const friendIds = user.friends.map(el => el.userId)
         const users = await User.find({ _id: { $nin: [...friendIds] } })

@@ -38,12 +38,6 @@ const userMutation = {
 
 const userResolver = {
     User: {
-        totalFriend: catchAsync(async ({ id }, _, { dbMethods }) => {
-            return await dbMethods.getTotalFiend(id)
-        }),
-        totalPost: catchAsync(async ({ id }, _, { dbMethods }) => {
-            return await dbMethods.getTotalPost(id)
-        }),
         friendList: catchAsync(async ({ id }, _, { dbMethods }) => {
             return await dbMethods.getFriends(id)
         }),

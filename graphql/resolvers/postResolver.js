@@ -10,7 +10,7 @@ const postQuery = {
         const user = await checkAuth(req)
         return await dbMethods.getPostsForUser(user, page)
     }),
-    postOfUser: catchAsync(async (_, { userId, page }, { dbMethods, req }) => {
+    postOfUser: catchAsync(async (_, { page, userId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
         const id = userId ? userId : user._id
         return await dbMethods.getPostsOfUser(id, page)

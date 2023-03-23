@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const GraphError = require('../errors')
 const User = require('../models/User')
-const catchAsync = require('../helpers/catchAsync')
 
 const checkPassword = async (password, hashedPassword) => {
     const check = await bcrypt.compare(password, hashedPassword)
@@ -43,7 +42,7 @@ const checkAuth = async (req) => {
     if (!authHeader || !authHeader.startsWith('Bearer')) {
         throw GraphError(
             "Authentication invalid",
-            "UNAUTHORIZED"
+            "UNAUTHENTICATED"
         )
     }
 
@@ -54,14 +53,14 @@ const checkAuth = async (req) => {
     if (!curUser) {
         throw GraphError(
             "User belonging to this token no longer exist",
-            "UNAUTHORIZED"
+            "UNAUTHENTICATED"
         )
     }
 
     if (checkPasswordChange(curUser.passwordChangedAt, decoded.iat)) {
         throw GraphError(
             "User recent changed the password. Please log in again with new password",
-            "UNAUTHORIZED"
+            "UNAUTHENTICATED"
         )
     }
     return curUser

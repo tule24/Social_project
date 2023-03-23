@@ -23,10 +23,6 @@ const postMethod = {
         const post = await Post.findById(postId)
         return post
     },
-    getTotalPost: async (userId) => {
-        const posts = await Post.find({ creatorId: userId })
-        return posts.length
-    },
     // handle mutation
     createPost: async (user, { content, media, vision }) => {
         if (!content) {

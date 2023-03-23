@@ -2,7 +2,7 @@ type Query {
   users: [User]!
   user(userId: ID): User!
   post(postId: ID!): Post!
-  postOfUser(userId: ID!, page: Int!): [Post]!
+  postOfUser(page: Int!, userId: ID): [Post]!
   postForUser(page: Int!): [Post]!
   commentOfPost(postId: ID!, page: Int!): [Comment]!
   repliesOfComment(commentId: ID!, page: Int!): [Replies]!
@@ -14,6 +14,7 @@ type Mutation {
   register(registerInput: registerInput!): User!
   login(loginInput: loginInput!): Auth!
   logout: String!
+  refreshToken(refreshToken: String!): Auth! 
 
   #userMutation
   updateUser(userInput: registerInput!): User!
@@ -95,8 +96,6 @@ type User {
   dob: Date
   createdAt: Date!
   updatedAt: Date!
-  totalFriend: Int!
-  totalPost: Int!
   friendList: [Friend]
   messageRoomOfUser: [MessageRoom]
 }

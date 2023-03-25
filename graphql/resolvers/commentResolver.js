@@ -13,13 +13,13 @@ const commentQuery = {
 }
 
 const commentMutation = {
-    createComment: catchAsync(async (_, { postId, commentInput }, { dbMethods, req }) => {
+    createComment: catchAsync(async (_, { postId, content }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.createComment(user, postId, commentInput)
+        return await dbMethods.createComment(user, postId, content)
     }),
-    updateComment: catchAsync(async (_, { commentId, commentInput }, { dbMethods, req }) => {
+    updateComment: catchAsync(async (_, { commentId, content }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.updateComment(user, commentId, commentInput)
+        return await dbMethods.updateComment(user, commentId, content)
     }),
     deleteComment: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
@@ -30,13 +30,13 @@ const commentMutation = {
         return await dbMethods.handleLikeComment(user, commentId)
     }),
 
-    createReplies: catchAsync(async (_, { commentId, repliesInput }, { dbMethods, req }) => {
+    createReplies: catchAsync(async (_, { commentId, content }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.createReplies(user, commentId, repliesInput)
+        return await dbMethods.createReplies(user, commentId, content)
     }),
-    updateReplies: catchAsync(async (_, { commentId, repliesId, repliesInput }, { dbMethods, req }) => {
+    updateReplies: catchAsync(async (_, { commentId, repliesId, content }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.updateReplies(user, commentId, repliesId, repliesInput)
+        return await dbMethods.updateReplies(user, commentId, repliesId, content)
     }),
     deleteReplies: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
         const user = await checkAuth(req)

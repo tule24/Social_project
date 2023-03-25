@@ -15,7 +15,7 @@ const commentMethod = {
         return replies.slice((page- 1)* 10, page)
     },
     // handle mutation
-    createComment: async (user, postId, { content, media }) => {
+    createComment: async (user, postId, content) => {
         const post = await checkFound(postId, Post)
         if (!content) {
             throw GraphError(
@@ -28,7 +28,6 @@ const commentMethod = {
             postId,
             creatorId: user._id,
             content,
-            media: media || [],
             like: [],
             replies: []
         })
@@ -39,8 +38,8 @@ const commentMethod = {
         await post.save()
         return comment
     },
-    updateComment: async (user, commentId, commentInput) => {
-        const comment = await Comment.findOneAndUpdate({ _id: commentId, creatorId: user._id }, commentInput, { new: true, runValidators: true })
+    updateComment: async (user, commentId, content) => {
+        const comment = await Comment.findOneAndUpdate({ _id: commentId, creatorId: user._id }, content, { new: true, runValidators: true })
         if (!comment) {
             throw GraphError(
                 "Comment not found or you aren't comment's owner",
@@ -78,7 +77,7 @@ const commentMethod = {
 
         return comment
     },
-    createReplies: async (user, commentId, { content, media }) => {
+    createReplies: async (user, commentId, content) => {
         const comment = await checkFound(commentId, Comment)
         if (!content) {
             throw GraphError(
@@ -90,7 +89,6 @@ const commentMethod = {
         const replies = {
             creatorId: user._id,
             content,
-            media: media || [],
             like: [],
         }
 
@@ -98,7 +96,7 @@ const commentMethod = {
         await comment.save()
         return replies
     },
-    updateReplies: async (user, commentId, repliesId, repliesInput) => {
+    updateReplies: async (user, commentId, repliesId, content) => {
         const comment = await checkFound(commentId, Comment)
         const replies = comment.replies
         const i = replies.find(el => el._id.equals(repliesId))
@@ -116,7 +114,7 @@ const commentMethod = {
             )
         }
 
-        replies[i] = { ...replies[i], ...repliesInput }
+        replies[i] = { ...replies[i], ...content }
         comment.replies = replies
         await comment.save()
         return replies[i]

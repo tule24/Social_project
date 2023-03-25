@@ -13,15 +13,17 @@ const postMethod = {
                 { vision: 'public' }
             ]
         }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
-        return posts
+        const res = posts.map(el => convertPost(el, user._id))
+        return res
     },
     getPostsOfUser: async (userId, page) => {
         const posts = await Post.find({ creatorId: userId }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
-        return posts
+        const res = posts.map(el => convertPost(el, userId))
+        return res
     },
-    getPostById: async (postId) => {
-        const post = await Post.findById(postId)
-        return post
+    getPostById: async (userId, postId) => {
+        const post = await checkFound(postId, Post)
+        return convertPost(post, userId)
     },
     // handle mutation
     createPost: async (user, { content, media, vision }) => {
@@ -44,7 +46,28 @@ const postMethod = {
         return newPost
     },
     updatePost: async (user, postId, postInput) => {
-        const post = await Post.findOneAndUpdate({ _id: postId, creatorId: user._id }, postInput, { new: true, runValidators: true })
+        const { content, media, vision } = postInput
+        let newMedia = []
+        if (media) {
+            const fileUrl = []
+            media.forEach(el => {
+                if (el.startsWith('http://res.cloudinary.com')) {
+                    newMedia.push(el)
+                } else {
+                    fileUrl.push(el)
+                }
+            })
+            const fileToImage = await uploadImage(fileUrl)
+            newMedia = [...newMedia, ...fileToImage]
+        }
+
+        const updateInput = {
+            content,
+            media: newMedia,
+            vision
+        }
+
+        const post = await Post.findOneAndUpdate({ _id: postId, creatorId: user._id }, updateInput, { new: true, runValidators: true })
         if (!post) {
             throw GraphError(
                 "Post not found or you aren't post's owner",
@@ -79,6 +102,21 @@ const postMethod = {
         await Comment.deleteMany({ postId })
         return post
     },
+}
+
+const convertPost = (post, userId) => {
+    return {
+        id: post.id,
+        creatorId: post.creatorId,
+        content: post.content,
+        media: post.media,
+        like: post.like,
+        vision: post.vision,
+        totalComment: post.totalComment,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        liked: post.like.includes(userId)
+    }
 }
 
 module.exports = postMethod

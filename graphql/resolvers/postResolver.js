@@ -3,8 +3,8 @@ const { checkAuth } = require('../../helpers/authHelper')
 
 const postQuery = {
     post: catchAsync(async (_, { postId }, { dbMethods, req }) => {
-        await checkAuth(req)
-        return await dbMethods.getPostById(postId)
+        const user = await checkAuth(req)
+        return await dbMethods.getPostById(user._id, postId)
     }),
     postForUser: catchAsync(async (_, { page }, { dbMethods, req }) => {
         const user = await checkAuth(req)

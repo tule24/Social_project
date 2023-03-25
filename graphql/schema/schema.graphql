@@ -30,12 +30,12 @@ type Mutation {
   handleLikePost(postId: ID!): Post!
 
   #commentMutation
-  createComment(postId: ID!, commentInput: commentInput!): Comment!
-  updateComment(commentId: ID!, commentInput: commentInput!): Comment!
+  createComment(postId: ID!, content: String!): Comment!
+  updateComment(commentId: ID!, content: String!): Comment!
   deleteComment(commentId: ID!): Comment!
   handleLikeComment(commentId: ID!): Comment!
-  createReplies(commentId: ID!, repliesInput: commentInput!): Replies!
-  updateReplies(commentId: ID!, repliesId: ID!, repliesInput: commentInput!): Replies!
+  createReplies(commentId: ID!, content: String!): Replies!
+  updateReplies(commentId: ID!, repliesId: ID!, content: String!): Replies!
   handleLikeReplies(commentId: ID!, repliesId: ID!): Replies!
   deleteReplies(commentId: ID!, repliesId: ID!): Replies!
 
@@ -72,11 +72,6 @@ input postInput {
   content: String
   media: [String]
   vision: String
-}
-
-input commentInput {
-  content: String
-  media: [String]
 }
 
 #basic type
@@ -124,6 +119,7 @@ type Post {
   media: [String]
   totalLike: Int!
   userLike: [User]!
+  liked: Boolean!
   vision: String!
   totalComment: Int!
   createdAt: Date!

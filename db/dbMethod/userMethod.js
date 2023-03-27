@@ -20,13 +20,13 @@ const userMethod = {
     getFriends: async (userId) => {
         const { friends } = await User.findById(userId).select('friends').populate({ path: "friends.userId", select: "_id name ava" })
         const formatFriends = friends.map(el => {
-            return { ...el.userId._doc, status: el.status }
+            return { ...el.userId._doc, id: el.userId._doc._id, status: el.status }
         })
         return formatFriends
     },
     getAllUser: async (user) => {
         const friendIds = user.friends.map(el => el.userId)
-        const users = await User.find({ _id: { $nin: [...friendIds] } })
+        const users = await User.find({ _id: { $nin: [...friendIds, user._id] } })
         return users
     },
     // handle mutation
@@ -65,7 +65,12 @@ const userMethod = {
 
         await user.save()
         await friend.save()
-        return user
+        return {
+            id: friend._id,
+            name: friend.name,
+            ava: friend.ava,
+            status: 'waiting'
+        }
     },
     handleConfirmFriend: async (user, friendId) => {
         const friend = await checkFound(friendId, User)
@@ -84,7 +89,12 @@ const userMethod = {
         await user.save()
         await friend.save()
 
-        return user
+        return {
+            id: friend._id,
+            name: friend.name,
+            ava: friend.ava,
+            status: 'confirm'
+        }
     },
     handleUnFriend: async (user, friendId) => {
         const friend = await checkFound(friendId, User)
@@ -95,7 +105,11 @@ const userMethod = {
         await user.save()
         await friend.save()
 
-        return user
+        return {
+            id: friend._id,
+            name: friend.name,
+            ava: friend.ava
+        }
     },
 }
 

@@ -10,6 +10,10 @@ const userQuery = {
         const user = await checkAuth(req)
         const id = userId ? userId : user._id
         return await dbMethods.getUserById(id)
+    }),
+    friendOfUser: catchAsync(async (_, __, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.getFriends(user._id)
     })
 }
 
@@ -38,9 +42,6 @@ const userMutation = {
 
 const userResolver = {
     User: {
-        friendList: catchAsync(async ({ id }, _, { dbMethods }) => {
-            return await dbMethods.getFriends(id)
-        }),
         messageRoomOfUser: ({ messageRooms }, _, { dbMethods }) => {
             return dbMethods.getMessageOfUser(messageRooms)
         }

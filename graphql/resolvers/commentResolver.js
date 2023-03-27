@@ -3,12 +3,12 @@ const { checkAuth } = require('../../helpers/authHelper')
 
 const commentQuery = {
     commentOfPost: catchAsync(async (_, { postId, page }, { dbMethods, req }) => {
-        await checkAuth(req)
-        return await dbMethods.getCommentsOfPost(postId, page)
+        const user = await checkAuth(req)
+        return await dbMethods.getCommentsOfPost(user._id, postId, page)
     }),
     repliesOfComment: catchAsync(async (_, { commentId, page }, { dbMethods, req }) => {
-        await checkAuth(req)
-        return await dbMethods.getCommentsOfPost(commentId, page)
+        const user = await checkAuth(req)
+        return await dbMethods.getRepliesOfComment(user._id, commentId, page)
     }),
 }
 

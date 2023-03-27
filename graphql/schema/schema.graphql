@@ -1,6 +1,7 @@
 type Query {
   users: [User]!
   user(userId: ID): User!
+  friendOfUser: [Friend]!
   post(postId: ID!): Post!
   postOfUser(page: Int!, userId: ID): [Post]!
   postForUser(page: Int!): [Post]!
@@ -19,9 +20,9 @@ type Mutation {
   #userMutation
   updateUser(userInput: registerInput!): User!
   changePassword(oldPassword: String!, newPassword: String!): User!
-  addFriend(friendId: ID!): User!
-  confirmFriend(friendId: ID!): User!
-  unFriend(friendId: ID!): User!
+  addFriend(friendId: ID!): Friend!
+  confirmFriend(friendId: ID!): Friend!
+  unFriend(friendId: ID!): Friend!
 
   #postMutation
   createPost(postInput: postInput!): Post!
@@ -91,11 +92,10 @@ type User {
   dob: Date
   createdAt: Date!
   updatedAt: Date!
-  friendList: [Friend]
   messageRoomOfUser: [MessageRoom]
 }
 type Friend {
-  _id: ID!
+  id: ID!
   name: String!
   ava: String
   status: String!
@@ -123,6 +123,7 @@ type Post {
   vision: String!
   totalComment: Int!
   createdAt: Date!
+  updatedAt: Date!
 }
 
 type Comment {
@@ -132,6 +133,7 @@ type Comment {
   createdAt: Date!
   totalLike: Int!
   userLike: [User]!
+  liked: Boolean!
   totalReplies: Int!
 }
 
@@ -141,5 +143,6 @@ type Replies {
   content: String!
   createdAt: Date!
   totalLike: Int!
+  liked: Boolean!
   userLike: [User]!
 }

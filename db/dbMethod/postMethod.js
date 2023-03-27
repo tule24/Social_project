@@ -106,7 +106,7 @@ const postMethod = {
 
 const convertPost = (post, userId) => {
     return {
-        id: post.id,
+        id: post._id,
         creatorId: post.creatorId,
         content: post.content,
         media: post.media,

@@ -5,14 +5,16 @@ const { checkFound } = require('../../helpers/methodHelper')
 
 const commentMethod = {
     // handle query
-    getCommentsOfPost: async (postId, page) => {
+    getCommentsOfPost: async (userId, postId, page) => {
         const comments = await Comment.find({ postId }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
-        return comments
+        const res = comments.map(el => convertComment(el, userId))
+        return res
     },
-    getRepliesOfComment: async (commentId, page) => {
-        const comment = await checkFound(commentId)
+    getRepliesOfComment: async (userId, commentId, page) => {
+        const comment = await checkFound(commentId, Comment)
         const { replies } = comment
-        return replies.slice((page- 1)* 10, page)
+        const res = replies.slice((page - 1) * 10, 10).sort((a, b) => b.createdAt - a.createdAt).map(el => convertReplies(el, userId))
+        return res
     },
     // handle mutation
     createComment: async (user, postId, content) => {
@@ -94,7 +96,8 @@ const commentMethod = {
 
         comment.replies.push(replies)
         await comment.save()
-        return replies
+        const newRep = comment.replies.pop()
+        return newRep
     },
     updateReplies: async (user, commentId, repliesId, content) => {
         const comment = await checkFound(commentId, Comment)
@@ -130,13 +133,12 @@ const commentMethod = {
             )
         }
 
-        if (comment.replies[i].creatorId !== user._id) {
+        if (!comment.replies[i].creatorId.equals(user._id)) {
             throw GraphError(
                 "You aren't replies owner",
                 "UNAUTHORIZED"
             )
         }
-
         const result = comment.replies.splice(i, 1)
         await comment.save()
         return result[0]
@@ -167,4 +169,28 @@ const commentMethod = {
     }
 }
 
+const convertComment = (comment, userId) => {
+    return {
+        id: comment._id,
+        postId: comment.postId,
+        creatorId: comment.creatorId,
+        content: comment.content,
+        like: comment.like,
+        replies: comment.replies,
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt,
+        liked: comment.like.includes(userId)
+    }
+}
+
+const convertReplies = (replies, userId) => {
+    return {
+        id: replies._id,
+        creatorId: replies.creatorId,
+        content: replies.content,
+        like: replies.like,
+        createdAt: replies.createdAt,
+        liked: replies.like.includes(userId)
+    }
+}
 module.exports = commentMethod

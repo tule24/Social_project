@@ -15,7 +15,7 @@ type Mutation {
   register(registerInput: registerInput!): User!
   login(loginInput: loginInput!): Auth!
   logout: String!
-  refreshToken(refreshToken: String!): Auth! 
+  refreshToken(refreshToken: String!): Auth!
 
   #userMutation
   updateUser(userInput: registerInput!): User!
@@ -28,16 +28,19 @@ type Mutation {
   createPost(postInput: postInput!): Post!
   updatePost(postId: ID!, postInput: postInput!): Post!
   deletePost(postId: ID!): Post!
-  handleLikePost(postId: ID!): Post!
+  likePost(postId: ID!): Post!
+  unlikePost(postId: ID!): Post!
 
   #commentMutation
   createComment(postId: ID!, content: String!): Comment!
   updateComment(commentId: ID!, content: String!): Comment!
   deleteComment(commentId: ID!): Comment!
-  handleLikeComment(commentId: ID!): Comment!
+  likeComment(commentId: ID!): Comment!
+  unlikeComment(commentId: ID!): Comment!
   createReplies(commentId: ID!, content: String!): Replies!
   updateReplies(commentId: ID!, repliesId: ID!, content: String!): Replies!
-  handleLikeReplies(commentId: ID!, repliesId: ID!): Replies!
+  likeReplies(commentId: ID!, repliesId: ID!): Replies!
+  unlikeReplies(commentId: ID!, repliesId: ID!): Replies!
   deleteReplies(commentId: ID!, repliesId: ID!): Replies!
 
   #messageMutation

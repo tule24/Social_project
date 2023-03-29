@@ -25,9 +25,13 @@ const commentMutation = {
         const user = await checkAuth(req)
         return await dbMethods.deleteComment(user, commentId)
     }),
-    handleLikeComment: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
+    likeComment: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.handleLikeComment(user, commentId)
+        return await dbMethods.likeComment(user, commentId)
+    }),
+    unlikeComment: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.unlikeComment(user, commentId)
     }),
 
     createReplies: catchAsync(async (_, { commentId, content }, { dbMethods, req }) => {
@@ -42,9 +46,13 @@ const commentMutation = {
         const user = await checkAuth(req)
         return await dbMethods.deleteReplies(user, commentId, repliesId)
     }),
-    handleLikeReplies: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
+    likeReplies: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.handleLikeReplies(user, commentId, repliesId)
+        return await dbMethods.likeReplies(user, commentId, repliesId)
+    }),
+    unlikeReplies: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.unlikeReplies(user, commentId, repliesId)
     }),
 }
 

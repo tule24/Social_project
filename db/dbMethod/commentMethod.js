@@ -41,7 +41,11 @@ const commentMethod = {
         return comment
     },
     updateComment: async (user, commentId, content) => {
-        const comment = await Comment.findOneAndUpdate({ _id: commentId, creatorId: user._id }, content, { new: true, runValidators: true })
+        const comment = await Comment.findOneAndUpdate(
+            { _id: commentId, creatorId: user._id },
+            { content },
+            { new: true, runValidators: true }
+        )
         if (!comment) {
             throw GraphError(
                 "Comment not found or you aren't comment's owner",
@@ -50,18 +54,32 @@ const commentMethod = {
         }
         return comment
     },
-    handleLikeComment: async (user, commentId) => {
-        const comment = await checkFound(commentId, Comment)
-        const oldLength = comment.like.length
-        comment.like = comment.like.filter(el => el !== user._id)
-        if (oldLength === comment.like.length) {
-            comment.like.push(user._id)
-            comment.totalLike += 1
-        } else {
-            comment.totalLike -= 1
+    likeComment: async (user, commentId) => {
+        const comment = await Comment.findOneAndUpdate(
+            { _id: commentId, like: { $ne: user._id } },
+            { $push: { like: user._id } },
+            { new: true, runValidators: true }
+        )
+        if (!comment) {
+            throw GraphError(
+                "You already liked this comment",
+                "BAD_REQUEST"
+            )
         }
-
-        await comment.save()
+        return comment
+    },
+    unlikeComment: async (user, commentId) => {
+        const comment = await Comment.findOneAndUpdate(
+            { _id: commentId, like: user._id },
+            { $pull: { like: user._id } },
+            { new: true, runValidators: true }
+        )
+        if (!comment) {
+            throw GraphError(
+                "You didn't like this comment",
+                "BAD_REQUEST"
+            )
+        }
         return comment
     },
     deleteComment: async (user, commentId) => {
@@ -100,72 +118,62 @@ const commentMethod = {
         return newRep
     },
     updateReplies: async (user, commentId, repliesId, content) => {
-        const comment = await checkFound(commentId, Comment)
-        const replies = comment.replies
-        const i = replies.find(el => el._id.equals(repliesId))
-        if (i < 0) {
+        const comment = await Comment.findOneAndUpdate(
+            { _id: commentId, 'replies._id': repliesId, 'replies.creatorId': user._id },
+            { $set: { 'replies.$.content': content } },
+            { new: true, runValidators: true }
+        )
+        if (!comment) {
             throw GraphError(
-                "Replies not found",
+                "Replies not found or you not replies's owner",
                 "NOT_FOUND"
             )
         }
-
-        if (replies[i].creatorId !== user._id) {
-            throw GraphError(
-                "You aren't replies owner",
-                "UNAUTHORIZED"
-            )
-        }
-
-        replies[i] = { ...replies[i], ...content }
-        comment.replies = replies
-        await comment.save()
-        return replies[i]
+        const result = comment.replies.find(el => el._id.equals(repliesId))
+        return result
     },
     deleteReplies: async (user, commentId, repliesId) => {
-        const comment = await checkFound(commentId, Comment)
-        const i = comment.replies.findIndex(el => el._id.equals(repliesId))
-
-        if (i < 0) {
+        const comment = await Comment.findOneAndUpdate(
+            { _id: commentId, 'replies._id': repliesId, 'replies.creatorId': user._id },
+            { '$pull': { replies: { _id: repliesId } } }
+        )
+        if (!comment) {
             throw GraphError(
-                "Replies not found",
+                "Replies not found or you not replies's owner",
                 "NOT_FOUND"
             )
         }
-
-        if (!comment.replies[i].creatorId.equals(user._id)) {
-            throw GraphError(
-                "You aren't replies owner",
-                "UNAUTHORIZED"
-            )
-        }
-        const result = comment.replies.splice(i, 1)
-        await comment.save()
-        return result[0]
+        return { id: repliesId }
     },
-    handleLikeReplies: async (user, commentId, repliesId) => {
-        const comment = await checkFound(commentId, Comment)
-        const replies = comment.replies
-        const i = replies.find(el => el._id.equals(repliesId))
-
-        if (i < 0) {
+    likeReplies: async (user, commentId, repliesId) => {
+        const comment = await Comment.findOneAndUpdate(
+            { _id: commentId, 'replies._id': repliesId, 'replies.like': { $ne: user._id } },
+            { $push: { "replies.$.like": user._id } },
+            { new: true, runValidators: true }
+        )
+        if (!comment) {
             throw GraphError(
-                "Replies not found",
-                "NOT_FOUND"
+                "You already liked this replies",
+                "BAD_REQUEST"
             )
         }
-        const oldLength = replies[i].like.length
-        replies[i].like = replies[i].like.filter(el => el !== user._id)
-        if (oldLength === replies[i].like.length) {
-            replies[i].like.push(user._id)
-            replies[i].totalLike += 1
-        } else {
-            replies[i].totalLike -= 1
+        const result = comment.replies.find(el => el._id.equals(repliesId))
+        return result
+    },
+    unlikeReplies: async (user, commentId, repliesId) => {
+        const comment = await Comment.findOneAndUpdate(
+            { _id: commentId, 'replies._id': repliesId, 'replies.like': user._id },
+            { $pull: { "replies.$.like": user._id } },
+            { new: true, runValidators: true }
+        )
+        if (!comment) {
+            throw GraphError(
+                "You didn't like this replies",
+                "BAD_REQUEST"
+            )
         }
-
-        comment.replies = replies
-        await comment.save()
-        return replies[i]
+        const result = comment.replies.find(el => el._id.equals(repliesId))
+        return result
     }
 }
 

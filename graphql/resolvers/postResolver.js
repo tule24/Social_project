@@ -26,9 +26,13 @@ const postMutation = {
         const user = await checkAuth(req)
         return await dbMethods.updatePost(user, postId, postInput)
     }),
-    handleLikePost: catchAsync(async (_, { postId }, { dbMethods, req }) => {
+    likePost: catchAsync(async (_, { postId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.handleLikePost(user, postId)
+        return await dbMethods.likePost(user, postId)
+    }),
+    unlikePost: catchAsync(async (_, { postId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.unlikePost(user, postId)
     }),
     deletePost: catchAsync(async (_, { postId }, { dbMethods, req }) => {
         const user = await checkAuth(req)

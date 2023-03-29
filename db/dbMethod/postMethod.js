@@ -67,7 +67,11 @@ const postMethod = {
             vision
         }
 
-        const post = await Post.findOneAndUpdate({ _id: postId, creatorId: user._id }, updateInput, { new: true, runValidators: true })
+        const post = await Post.findOneAndUpdate(
+            { _id: postId, creatorId: user._id },
+            updateInput,
+            { new: true, runValidators: true }
+        )
         if (!post) {
             throw GraphError(
                 "Post not found or you aren't post's owner",
@@ -76,18 +80,32 @@ const postMethod = {
         }
         return post
     },
-    handleLikePost: async (user, postId) => {
-        const post = await checkFound(postId, Post)
-        const oldLength = post.like.length
-        post.like = post.like.filter(el => !el.equals(user._id))
-        if (oldLength === post.like.length) {
-            post.like.push(user._id)
-            post.totalLike += 1
-        } else {
-            post.totalLike -= 1
+    likePost: async (user, postId) => {
+        const post = await Post.findOneAndUpdate(
+            { _id: postId, like: { $ne: user._id } },
+            { $push: { like: user._id } },
+            { new: true, runValidators: true }
+        )
+        if (!post) {
+            throw GraphError(
+                "You already liked this post",
+                "BAD_REQUEST"
+            )
         }
-
-        await post.save()
+        return post
+    },
+    unlikePost: async (user, postId) => {
+        const post = await Post.findOneAndUpdate(
+            { _id: postId, like: user._id },
+            { $pull: { like: user._id } },
+            { new: true, runValidators: true }
+        )
+        if (!post) {
+            throw GraphError(
+                "You didn't like this post",
+                "BAD_REQUEST"
+            )
+        }
         return post
     },
     deletePost: async (user, postId) => {

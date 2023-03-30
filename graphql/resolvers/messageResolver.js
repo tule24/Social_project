@@ -1,6 +1,6 @@
 const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
-const { PubSub } = require('graphql-subscriptions')
+const { PubSub, withFilter } = require('graphql-subscriptions')
 const pubsub = new PubSub()
 
 const messageQuery = {
@@ -31,18 +31,25 @@ const messageMutation = {
 
 const messageSubscription = {
     messageCreated: {
-        subscribe: () => pubsub.asyncIterator('MESSAGE_CREATED')
+        subscribe: withFilter(
+            () => {
+                return pubsub.asyncIterator('MESSAGE_CREATED')
+            },
+            (parent, _, { user }) => {
+                return parent.messageCreated.users.includes(user._id)
+            }
+        )
     }
 }
 
 const messageResolver = {
     Message: {
-        user: catchAsync(async ({ creatorId }, _, { dbMethods, req }) => {
-            return await dbMethods.getUserById(creatorId)
+        creator: catchAsync(async ({ user, creatorId }, _, { dbMethods }) => {
+            return user ? user : await dbMethods.getUserById(creatorId)
         })
     },
     MessageRoom: {
-        users: catchAsync(async ({ users }, _, { dbMethods, req }) => {
+        users: catchAsync(async ({ users }, _, { dbMethods }) => {
             return dbMethods.getUserLike(users)
         })
     }

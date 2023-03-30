@@ -7,7 +7,7 @@ type Query {
   postForUser(page: Int!): [Post]!
   commentOfPost(postId: ID!, page: Int!): [Comment]!
   repliesOfComment(commentId: ID!, page: Int!): [Replies]!
-  getMessageRoom(roomId: ID!, page: Int!): MessageRoom!
+  getMessageRoom(roomId: ID!): MessageRoom!
 }
 
 type Mutation {
@@ -104,15 +104,25 @@ type Friend {
   status: String!
 }
 
-type Message {
-  user: User!
-  content: String!
+type MessageChild {
+  message: String!
   createdAt: Date!
+}
+type Message {
+  id: ID!
+  creator: User!
+  content: [MessageChild]!
+}
+type LastMessage {
+  creatorId: ID!
+  content: String!
 }
 type MessageRoom {
   id: ID!
   users: [User]!
-  message: [Message]!
+  messages: [Message]!
+  lastMessage: LastMessage!
+  updatedAt: Date!
 }
 
 type Post {

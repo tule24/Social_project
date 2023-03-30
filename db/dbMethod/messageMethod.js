@@ -7,7 +7,7 @@ const messageMethod = {
     // query
     getMessageRoom: async (user, { roomId }) => {
         const messageRoom = await checkFound(roomId, Message)
-        const checkInRoom = messageRoom.users.find(user._id)
+        const checkInRoom = messageRoom.users.includes(user._id)
         if (!checkInRoom) {
             throw GraphError(
                 "You don't have permission to access this room",
@@ -32,31 +32,40 @@ const messageMethod = {
                 "UNAUTHORIZED"
             )
         }
-
         const message = {
-            creatorId: user._id,
-            content,
+            message: content,
             createdAt: Date.now()
         }
+        if (messageRoom?.lastMessage?.creatorId?.equals(user._id)) {
+            const len = messageRoom.messages.length - 1
+            messageRoom.messages[len].content.unshift(message)
+        } else {
+            const newMessage = {
+                creatorId: user._id,
+                content: [message]
+            }
+            messageRoom.messages.unshift(newMessage)
+        }
 
-        messageRoom.messages.push(message)
+        messageRoom.lastMessage = {
+            creatorId: user._id,
+            content
+        }
         await messageRoom.save()
+        const newMessage = messageRoom.messages.pop()
 
         pubsub.publish('MESSAGE_CREATED', {
             messageCreated: {
-                user: {
-                    _id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    ava: user.ava,
-                    phone: user.phone,
-                    address: user.address
-                },
-                content,
-                createdAt: Date.now()
+                users: messageRoom.users,
+                id: newMessage._id,
+                ...newMessage._doc
             }
         })
-        return message
+        return {
+            user,
+            id: newMessage._id,
+            ...newMessage._doc
+        }
     },
     createMessageRoom: async (user, { users }) => {
         const newMessageRoom = new Message({

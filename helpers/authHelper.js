@@ -37,8 +37,13 @@ const createRefreshJWT = (userId) => jwt.sign(
     { expiresIn: process.env.JWT_REFRESH_LIFETIME }
 )
 
-const checkAuth = async (req) => {
-    const authHeader = req.headers.authorization
+const checkAuth = async (auth) => {
+    let authHeader
+    if (auth && auth.headers && auth.headers.authorization) {
+        authHeader = auth.headers.authorization
+    } else if (auth && auth.connectionParams && auth.connectionParams.authToken) {
+        authHeader = auth.connectionParams.authToken
+    }
     if (!authHeader || !authHeader.startsWith('Bearer')) {
         throw GraphError(
             "Authentication invalid",

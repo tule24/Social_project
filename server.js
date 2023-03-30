@@ -21,12 +21,14 @@ const connectDB = require('./db/connectDB')
 const typeDefs = gql(readFileSync(`${__dirname}/graphql/schema/schema.graphql`, { encoding: 'utf-8' }))
 const resolvers = require('./graphql/resolvers')
 const dbMethods = require('./db/dbMethod')
+const { checkAuth } = require('./helpers/authHelper')
+const GraphError = require('./errors')
 
 
 async function start() {
     const app = express()
-    app.use(express.json({limit: '25mb'}));
-    app.use(express.urlencoded({limit: '25mb'}));
+    app.use(express.json({ limit: '25mb' }));
+    app.use(express.urlencoded({ limit: '25mb' }));
     app.use(cors())
 
     const httpServer = createServer(app)
@@ -37,7 +39,17 @@ async function start() {
             server: httpServer,
             path: '/graphql'
         })
-        const serverCleanup = useServer({ schema }, wsServer)
+        const serverCleanup = useServer({
+            schema,
+            context: async (ctx) => {
+                try {
+                    const user = await checkAuth(ctx)
+                    return { dbMethods, user }
+                } catch (error) {
+                    throw GraphError(error.message, 'UNAUTHORIZED')
+                }
+            }
+        }, wsServer)
 
         const server = new ApolloServer({
             schema,

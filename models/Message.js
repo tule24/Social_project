@@ -16,7 +16,6 @@ const messageSchema = new Schema({
         content: {
             type: String,
             trim: true,
-            default: "You are now connected! Send your first message!",
             minLength: [1, "Content length > 0"]
         }
     },

@@ -43,7 +43,7 @@ async function start() {
             schema,
             context: async (ctx) => {
                 try {
-                    const user = await checkAuth(ctx)
+                    const user = await checkAuth(ctx.connectionParams)
                     return { dbMethods, user }
                 } catch (error) {
                     throw GraphError(error.message, 'UNAUTHORIZED')

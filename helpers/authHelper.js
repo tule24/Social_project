@@ -41,10 +41,13 @@ const checkAuth = async (auth) => {
     let authHeader
     if (auth && auth.headers && auth.headers.authorization) {
         authHeader = auth.headers.authorization
-    } else if (auth && auth.connectionParams && auth.connectionParams.authToken) {
-        authHeader = auth.connectionParams.authToken
+    } else {
+        throw GraphError(
+            "Authentication invalid",
+            "UNAUTHENTICATED"
+        )
     }
-    if (!authHeader || !authHeader.startsWith('Bearer')) {
+    if (!authHeader.startsWith('Bearer')) {
         throw GraphError(
             "Authentication invalid",
             "UNAUTHENTICATED"

@@ -37,8 +37,7 @@ const messageMethod = {
             createdAt: Date.now()
         }
         if (messageRoom?.lastMessage?.creatorId?.equals(user._id)) {
-            const len = messageRoom.messages.length - 1
-            messageRoom.messages[len].content.unshift(message)
+            messageRoom.messages[0].content.push(message)
         } else {
             const newMessage = {
                 creatorId: user._id,
@@ -52,18 +51,20 @@ const messageMethod = {
             content
         }
         await messageRoom.save()
-        const newMessage = messageRoom.messages.pop()
+        const newMessage = messageRoom.messages.shift()
 
         pubsub.publish('MESSAGE_CREATED', {
             messageCreated: {
                 users: messageRoom.users,
                 id: newMessage._id,
+                roomId,
+                creator: user,
                 ...newMessage._doc
             }
         })
         return {
-            user,
             id: newMessage._id,
+            creator: user,
             ...newMessage._doc
         }
     },

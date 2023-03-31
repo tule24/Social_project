@@ -110,18 +110,19 @@ type MessageChild {
 }
 type Message {
   id: ID!
+  roomId: ID!
   creator: User!
   content: [MessageChild]!
 }
 type LastMessage {
-  creatorId: ID!
-  content: String!
+  creatorId: ID
+  content: String
 }
 type MessageRoom {
   id: ID!
   users: [User]!
   messages: [Message]!
-  lastMessage: LastMessage!
+  lastMessage: LastMessage
   updatedAt: Date!
 }
 

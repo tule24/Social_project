@@ -44,8 +44,8 @@ const messageSubscription = {
 
 const messageResolver = {
     Message: {
-        creator: catchAsync(async ({ user, creatorId }, _, { dbMethods }) => {
-            return user ? user : await dbMethods.getUserById(creatorId)
+        creator: catchAsync(async ({ creator, creatorId }, _, { dbMethods }) => {
+            return creator ? creator : await dbMethods.getUserById(creatorId)
         })
     },
     MessageRoom: {

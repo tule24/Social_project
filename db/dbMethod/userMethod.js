@@ -4,6 +4,7 @@ const Notification = require('../../models/Notification')
 const GraphError = require('../../errors')
 const { checkPassword } = require('../../helpers/authHelper')
 const { updateId, addId, checkFound, removeId } = require('../../helpers/methodHelper')
+const uploadImage = require('./uploadImage')
 
 const userMethod = {
     // handle query
@@ -38,7 +39,14 @@ const userMethod = {
                 "BAD_REQUEST"
             )
         }
-        const newUser = await User.findByIdAndUpdate(user._id, userInput, { new: true, runValidators: true })
+
+        let newUser
+        if (userInput.ava) {
+            const ava = await uploadImage(userInput.ava)
+            newUser = await User.findByIdAndUpdate(user._id, { ava }, { new: true, runValidators: true })
+        } else {
+            newUser = await User.findByIdAndUpdate(user._id, userInput, { new: true, runValidators: true })
+        }
         return newUser
     },
     changePassword: async (user, oldPassword, newPassword) => {

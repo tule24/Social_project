@@ -11,10 +11,13 @@ const postQuery = {
         const user = await checkAuth(req)
         return await dbMethods.getPostsForUser(user, page)
     }),
-    postOfUser: catchAsync(async (_, { page, userId }, { dbMethods, req }) => {
+    postOfUser: catchAsync(async (_, { userId, page }, { dbMethods, req }) => {
+        const caller = await checkAuth(req)
+        return await dbMethods.getPostsOfUser(caller, userId, page)
+    }),
+    postOfOwner: catchAsync(async (_, { page }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        const id = userId ? userId : user._id
-        return await dbMethods.getPostsOfUser(id, page)
+        return await dbMethods.getPostsOfOwner(user._id, page)
     })
 }
 

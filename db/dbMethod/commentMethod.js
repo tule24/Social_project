@@ -52,10 +52,10 @@ const commentMethod = {
 
         post.totalComment += 1
 
-        if (user._id !== post.creatorId) {
+        if (!user._id.equals(post.creatorId)) {
             const regex = /[^><]\w+/gm
             let content = post.content.match(regex)
-            if (content) content = content[0].substring(0, 8)
+            if (content) content = content[0].substring(0, 10).concat('...')
 
             const noti = new Notification({
                 userId: post.creatorId,

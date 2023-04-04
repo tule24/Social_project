@@ -17,9 +17,17 @@ const postMethod = {
         const res = posts.map(el => convertPost(el, user._id))
         return res
     },
-    getPostsOfUser: async (userId, page) => {
+    getPostsOfOwner: async (userId, page) => {
         const posts = await Post.find({ creatorId: userId }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
         const res = posts.map(el => convertPost(el, userId))
+        return res
+    },
+    getPostsOfUser: async (caller, userId, page) => {
+        const vision = ['public']
+        const checkFriend = caller.friends.find(el => el.userId.equals(userId) && el.status === 'confirm')
+        if (checkFriend) vision.push('friend')
+        const posts = await Post.find({ creatorId: userId, vision: { $in: vision } }).sort('updatedAt').skip((page - 1) * 10).limit(10)
+        const res = posts.map(el => convertPost(el, caller._id))
         return res
     },
     getPostById: async (userId, postId) => {
@@ -88,12 +96,12 @@ const postMethod = {
             { new: true, runValidators: true }
         )
 
-        if (user._id !== post.creatorId) {
+        if (!user._id.equals(post.creatorId)) {
             const oldNoti = await Notification.findOne({ fromId: user._id, option: 'likepost', contentId: postId })
             if (!oldNoti) {
                 const regex = /[^><]\w+/gm
                 let content = post.content.match(regex)
-                if (content) content = content[0].substring(0,8)
+                if (content) content = content[0].substring(0, 8)
                 const noti = new Notification({
                     userId: post.creatorId,
                     fromId: user._id,

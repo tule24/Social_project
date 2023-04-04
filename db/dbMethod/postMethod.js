@@ -2,31 +2,34 @@ const Post = require('../../models/Post')
 const Comment = require('../../models/Comment')
 const Notification = require('../../models/Notification')
 const GraphError = require('../../errors')
-const { checkFound } = require('../../helpers/methodHelper')
+const { checkFound, pagination } = require('../../helpers/methodHelper')
 const uploadImage = require('./uploadImage')
 const postMethod = {
     // handle query
-    getPostsForUser: async (user, page) => {
+    getPostsForUser: async (user, args) => {
+        const { limit, skip } = pagination(args)
         const friendIds = user.friends.filter(el => el.status === 'confirm').map(el => el.userId)
         const posts = await Post.find({
             $or: [
                 { creatorId: { $in: [user._id, ...friendIds] }, vision: { $ne: 'private' } },
                 { vision: 'public' }
             ]
-        }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
+        }).sort('-updatedAt').skip(skip).limit(limit)
         const res = posts.map(el => convertPost(el, user._id))
         return res
     },
-    getPostsOfOwner: async (userId, page) => {
-        const posts = await Post.find({ creatorId: userId }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
+    getPostsOfOwner: async (userId, args) => {
+        const { limit, skip } = pagination(args)
+        const posts = await Post.find({ creatorId: userId }).sort('-updatedAt').skip(limit).limit(skip)
         const res = posts.map(el => convertPost(el, userId))
         return res
     },
-    getPostsOfUser: async (caller, userId, page) => {
+    getPostsOfUser: async (caller, userId, args) => {
         const vision = ['public']
         const checkFriend = caller.friends.find(el => el.userId.equals(userId) && el.status === 'confirm')
         if (checkFriend) vision.push('friend')
-        const posts = await Post.find({ creatorId: userId, vision: { $in: vision } }).sort('updatedAt').skip((page - 1) * 10).limit(10)
+        const { limit, skip } = pagination(args)
+        const posts = await Post.find({ creatorId: userId, vision: { $in: vision } }).sort('updatedAt').skip(skip).limit(limit)
         const res = posts.map(el => convertPost(el, caller._id))
         return res
     },

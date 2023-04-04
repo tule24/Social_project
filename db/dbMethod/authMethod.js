@@ -1,5 +1,5 @@
 const User = require('../../models/User')
-const { checkPassword, createRefreshJWT, createJWT, checkAuth } = require('../../helpers/authHelper')
+const { checkAuth, checkPassword, createRefreshJWT, createJWT } = require('../../helpers/authHelper')
 const GraphError = require('../../errors')
 const jwt = require('jsonwebtoken')
 

@@ -1,8 +1,10 @@
 const Notification = require('../../models/Notification')
+const { pagination } = require('../../helpers/methodHelper')
 
 const notificationMethod = {
-    getNotification: async (user, { page }) => {
-        const notifications = await Notification.find({ userId: user._id }).sort('-createdAt').skip((page - 1) * 10).limit(10)
+    getNotification: async (user, args) => {
+        const { limit, skip } = pagination(args)
+        const notifications = await Notification.find({ userId: user._id }).sort('-createdAt').skip(skip).limit(limit)
         return notifications
     }
 }

@@ -1,5 +1,5 @@
-const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
+const { catchAsync } = require('../../helpers/catchAsync')
 const { pushNoti } = require('../../graphql/resolvers/notificationResolver')
 
 const postQuery = {
@@ -7,17 +7,17 @@ const postQuery = {
         const user = await checkAuth(req)
         return await dbMethods.getPostById(user._id, postId)
     }),
-    postForUser: catchAsync(async (_, { page }, { dbMethods, req }) => {
+    postForUser: catchAsync(async (_, args, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.getPostsForUser(user, page)
+        return await dbMethods.getPostsForUser(user, args)
     }),
-    postOfUser: catchAsync(async (_, { userId, page }, { dbMethods, req }) => {
+    postOfUser: catchAsync(async (_, { userId, ...args }, { dbMethods, req }) => {
         const caller = await checkAuth(req)
-        return await dbMethods.getPostsOfUser(caller, userId, page)
+        return await dbMethods.getPostsOfUser(caller, userId, args)
     }),
-    postOfOwner: catchAsync(async (_, { page }, { dbMethods, req }) => {
+    postOfOwner: catchAsync(async (_, args, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.getPostsOfOwner(user._id, page)
+        return await dbMethods.getPostsOfOwner(user._id, args)
     })
 }
 

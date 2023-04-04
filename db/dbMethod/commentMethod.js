@@ -2,12 +2,13 @@ const Post = require('../../models/Post')
 const Comment = require('../../models/Comment')
 const Notification = require('../../models/Notification')
 const GraphError = require('../../errors')
-const { checkFound } = require('../../helpers/methodHelper')
+const { checkFound, pagination } = require('../../helpers/methodHelper')
 
 const commentMethod = {
     // handle query
-    getCommentsOfPost: async (userId, postId, page) => {
-        const comments = await Comment.find({ postId }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
+    getCommentsOfPost: async (userId, postId, args) => {
+        const { limit, skip } = pagination(args)
+        const comments = await Comment.find({ postId }).sort('-updatedAt').skip(skip).limit(limit)
         const res = comments.map(el => convertComment(el, userId))
         return res
     },
@@ -15,10 +16,11 @@ const commentMethod = {
         const comment = await checkFound(commentId, Comment)
         return comment
     },
-    getRepliesOfComment: async (userId, commentId, page) => {
+    getRepliesOfComment: async (userId, commentId, args) => {
+        const { limit, skip } = pagination(args)
         const comment = await checkFound(commentId, Comment)
         const { replies } = comment
-        const res = replies.slice((page - 1) * 10, 10).map(el => convertReplies(el, userId))
+        const res = replies.slice(skip, skip + limit).map(el => convertReplies(el, userId))
         return res
     },
     getRepliesById: async (commentId, repliesId) => {

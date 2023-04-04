@@ -1,11 +1,11 @@
-const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
+const { catchAsync } = require('../../helpers/catchAsync')
 const { pushNoti } = require('../../graphql/resolvers/notificationResolver')
 
 const userQuery = {
-    users: catchAsync(async (_, __, { dbMethods, req }) => {
+    users: catchAsync(async (_, args, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.getAllUser(user)
+        return await dbMethods.getAllUser(user, args)
     }),
     user: catchAsync(async (_, { userId }, { dbMethods, req }) => {
         const user = await checkAuth(req)

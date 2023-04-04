@@ -1,12 +1,12 @@
-const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
+const { catchAsync } = require('../../helpers/catchAsync')
 const { PubSub, withFilter } = require('graphql-subscriptions')
 const pubsub = new PubSub()
 
 const messageQuery = {
-    getMessageRoom: catchAsync(async (_, args, { dbMethods, req }) => {
+    getMessageRoom: catchAsync(async (_, { roomId, ...args }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return dbMethods.getMessageRoom(user, args)
+        return dbMethods.getMessageRoom(user, roomId, args)
     })
 }
 

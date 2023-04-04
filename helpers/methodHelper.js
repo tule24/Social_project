@@ -55,4 +55,11 @@ const checkFound = async (id, Model) => {
     return ele
 }
 
-module.exports = { updateId, addId, removeId, checkFound }
+const pagination = (args) => {
+    const page = Number(args.page) || 1
+    const limit = Number(args.limit) || 10
+    const skip = (page - 1) * limit
+    return { limit, skip }
+}
+
+module.exports = { updateId, addId, removeId, checkFound, pagination }

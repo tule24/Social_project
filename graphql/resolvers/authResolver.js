@@ -1,4 +1,4 @@
-const catchAsync = require('../../helpers/catchAsync')
+const { catchAsync } = require('../../helpers/catchAsync')
 
 const authMutation = {
     register: catchAsync(async (_, { registerInput }, { dbMethods }) => {

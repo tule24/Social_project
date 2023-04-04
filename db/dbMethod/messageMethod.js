@@ -1,11 +1,11 @@
 const Message = require('../../models/Message')
 const User = require('../../models/User')
 const GraphError = require('../../errors')
-const { checkFound } = require('../../helpers/methodHelper')
+const { checkFound, pagination } = require('../../helpers/methodHelper')
 
 const messageMethod = {
     // query
-    getMessageRoom: async (user, { roomId }) => {
+    getMessageRoom: async (user, roomId, args) => {
         const messageRoom = await checkFound(roomId, Message)
         const checkInRoom = messageRoom.users.includes(user._id)
         if (!checkInRoom) {
@@ -15,7 +15,14 @@ const messageMethod = {
             )
         }
 
-        return messageRoom
+        const { limit, skip } = pagination(args)
+        const { messages } = messageRoom._doc
+        const newMsg = messages.slice(skip, skip + limit)
+        return {
+            ...messageRoom._doc,
+            id: messageRoom._id,
+            messages: newMsg
+        }
     },
     getMessageOfUser: async (messageRooms) => {
         const messageRoomsArr = await Message.find({ _id: { $in: messageRooms } })

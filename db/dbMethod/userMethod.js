@@ -3,7 +3,7 @@ const Message = require('../../models/Message')
 const Notification = require('../../models/Notification')
 const GraphError = require('../../errors')
 const { checkPassword } = require('../../helpers/authHelper')
-const { updateId, addId, checkFound, removeId } = require('../../helpers/methodHelper')
+const { pagination, checkFound, removeId, updateId, addId } = require('../../helpers/methodHelper')
 const uploadImage = require('./uploadImage')
 
 const userMethod = {
@@ -26,9 +26,10 @@ const userMethod = {
         })
         return formatFriends
     },
-    getAllUser: async (user) => {
+    getAllUser: async (user, args) => {
         const friendIds = user.friends.map(el => el.userId)
-        const users = await User.find({ _id: { $nin: [...friendIds, user._id] } })
+        const { limit, skip } = pagination(args)
+        const users = await User.find({ _id: { $nin: [...friendIds, user._id] } }).skip(skip).limit(limit)
         return users
     },
     // handle mutation

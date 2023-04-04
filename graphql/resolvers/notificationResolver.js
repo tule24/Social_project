@@ -1,5 +1,5 @@
-const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
+const { catchAsync } = require('../../helpers/catchAsync')
 const { PubSub, withFilter } = require('graphql-subscriptions')
 const pubsub = new PubSub()
 

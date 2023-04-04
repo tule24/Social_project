@@ -1,20 +1,20 @@
-const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
+const { catchAsync } = require('../../helpers/catchAsync')
 const { pushNoti } = require('../../graphql/resolvers/notificationResolver')
 
 
 const commentQuery = {
-    commentOfPost: catchAsync(async (_, { postId, page }, { dbMethods, req }) => {
+    commentOfPost: catchAsync(async (_, { postId, ...args }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.getCommentsOfPost(user._id, postId, page)
+        return await dbMethods.getCommentsOfPost(user._id, postId, args)
     }),
     commentById: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
         await checkAuth(req)
         return await dbMethods.getCommentById(commentId)
     }),
-    repliesOfComment: catchAsync(async (_, { commentId, page }, { dbMethods, req }) => {
+    repliesOfComment: catchAsync(async (_, { commentId, ...args }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.getRepliesOfComment(user._id, commentId, page)
+        return await dbMethods.getRepliesOfComment(user._id, commentId, args)
     }),
     repliesById: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
         await checkAuth(req)

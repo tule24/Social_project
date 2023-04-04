@@ -6,8 +6,11 @@ type Query {
   postOfUser(page: Int!, userId: ID): [Post]!
   postForUser(page: Int!): [Post]!
   commentOfPost(postId: ID!, page: Int!): [Comment]!
+  commentById(commentId: ID!): Comment!
   repliesOfComment(commentId: ID!, page: Int!): [Replies]!
+  repliesById(commentId: ID!, repliesId: ID!): Replies!
   getMessageRoom(roomId: ID!): MessageRoom!
+  getNotification(page: Int!): [Notification]!
 }
 
 type Mutation {
@@ -52,6 +55,7 @@ type Mutation {
 
 type Subscription {
   messageCreated: Message!
+  notificationCreated: Notification!
 }
 
 scalar Date
@@ -159,4 +163,12 @@ type Replies {
   totalLike: Int!
   liked: Boolean!
   userLike: [User]!
+}
+
+type Notification {
+  id: ID!
+  from: User!,
+  option: String!,
+  contentId: ID!,
+  content: String!
 }

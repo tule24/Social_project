@@ -1,5 +1,6 @@
 const Post = require('../../models/Post')
 const Comment = require('../../models/Comment')
+const Notification = require('../../models/Notification')
 const GraphError = require('../../errors')
 const { checkFound } = require('../../helpers/methodHelper')
 const uploadImage = require('./uploadImage')
@@ -9,7 +10,7 @@ const postMethod = {
         const friendIds = user.friends.filter(el => el.status === 'confirm').map(el => el.userId)
         const posts = await Post.find({
             $or: [
-                { creatorId: { $in: [user._id, ...friendIds] } },
+                { creatorId: { $in: [user._id, ...friendIds] }, vision: { $ne: 'private' } },
                 { vision: 'public' }
             ]
         }).sort('-updatedAt').skip((page - 1) * 10).limit(10)
@@ -80,12 +81,39 @@ const postMethod = {
         }
         return post
     },
-    likePost: async (user, postId) => {
+    likePost: async (user, postId, pushNoti) => {
         const post = await Post.findOneAndUpdate(
             { _id: postId, like: { $ne: user._id } },
             { $push: { like: user._id } },
             { new: true, runValidators: true }
         )
+
+        if (user._id !== post.creatorId) {
+            const oldNoti = await Notification.findOne({ fromId: user._id, option: 'likepost', contentId: postId })
+            if (!oldNoti) {
+                const regex = /[^><]\w+/gm
+                let content = post.content.match(regex)
+                if (content) content = content[0].substring(0,8)
+                const noti = new Notification({
+                    userId: post.creatorId,
+                    fromId: user._id,
+                    option: 'likepost',
+                    contentId: postId,
+                    content: `liked your post "${content}"`
+                })
+
+                await noti.save()
+                pushNoti({
+                    id: noti._id,
+                    userId: noti.userId,
+                    fromId: noti.fromId,
+                    option: noti.option,
+                    contentId: noti.contentId,
+                    content: noti.content
+                })
+            }
+        }
+
         if (!post) {
             throw GraphError(
                 "You already liked this post",
@@ -106,6 +134,15 @@ const postMethod = {
                 "BAD_REQUEST"
             )
         }
+
+        pushNoti({
+            id: 'unlikepost',
+            userId: post.creatorId,
+            fromId: user._id,
+            option: 'unlikepost',
+            contentId: postId,
+            content: 'unlikepost'
+        })
         return post
     },
     deletePost: async (user, postId) => {

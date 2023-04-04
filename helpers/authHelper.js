@@ -37,7 +37,7 @@ const createRefreshJWT = (userId) => jwt.sign(
     { expiresIn: process.env.JWT_REFRESH_LIFETIME }
 )
 
-const checkAuth = async (auth) => {
+const checkAuth = async (auth, ws) => {
     let authHeader
     if (auth && auth.headers && auth.headers.authorization) {
         authHeader = auth.headers.authorization
@@ -55,7 +55,12 @@ const checkAuth = async (auth) => {
     }
 
     const token = authHeader.split(' ')[1]
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    let decoded
+    if(ws) {
+        decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET)
+    } else {
+        decoded = jwt.verify(token, process.env.JWT_SECRET)
+    }
 
     const curUser = await User.findById(decoded.userId)
     if (!curUser) {

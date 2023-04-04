@@ -28,7 +28,10 @@ const userSchema = new Schema({
         type: Date,
         default: Date.now
     },
-    ava: String,
+    ava: {
+        type: String,
+        default: '/avatar.png'
+    },
     phone: String,
     address: String,
     friends: [

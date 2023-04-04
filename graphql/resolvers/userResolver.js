@@ -1,5 +1,6 @@
 const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
+const { pushNoti } = require('../../graphql/resolvers/notificationResolver')
 
 const userQuery = {
     users: catchAsync(async (_, __, { dbMethods, req }) => {
@@ -28,11 +29,11 @@ const userMutation = {
     }),
     addFriend: catchAsync(async (_, { friendId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.handleAddFriend(user, friendId)
+        return await dbMethods.handleAddFriend(user, friendId, pushNoti)
     }),
     confirmFriend: catchAsync(async (_, { friendId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.handleConfirmFriend(user, friendId)
+        return await dbMethods.handleConfirmFriend(user, friendId, pushNoti)
     }),
     unFriend: catchAsync(async (_, { friendId }, { dbMethods, req }) => {
         const user = await checkAuth(req)

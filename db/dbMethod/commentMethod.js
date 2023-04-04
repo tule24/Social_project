@@ -1,5 +1,6 @@
 const Post = require('../../models/Post')
 const Comment = require('../../models/Comment')
+const Notification = require('../../models/Notification')
 const GraphError = require('../../errors')
 const { checkFound } = require('../../helpers/methodHelper')
 
@@ -10,14 +11,29 @@ const commentMethod = {
         const res = comments.map(el => convertComment(el, userId))
         return res
     },
+    getCommentById: async (commentId) => {
+        const comment = await checkFound(commentId, Comment)
+        return comment
+    },
     getRepliesOfComment: async (userId, commentId, page) => {
         const comment = await checkFound(commentId, Comment)
         const { replies } = comment
-        const res = replies.slice((page - 1) * 10, 10).sort((a, b) => b.createdAt - a.createdAt).map(el => convertReplies(el, userId))
+        const res = replies.slice((page - 1) * 10, 10).map(el => convertReplies(el, userId))
         return res
     },
+    getRepliesById: async (commentId, repliesId) => {
+        const comment = await checkFound(commentId, Comment)
+        const replies = comment.replies.find(el => el._id.equals(repliesId))
+        if (!replies) {
+            throw GraphError(
+                "Replies not found",
+                "NOT_FOUND"
+            )
+        }
+        return replies
+    },
     // handle mutation
-    createComment: async (user, postId, content) => {
+    createComment: async (user, postId, content, pushNoti) => {
         const post = await checkFound(postId, Post)
         if (!content) {
             throw GraphError(
@@ -35,6 +51,30 @@ const commentMethod = {
         })
 
         post.totalComment += 1
+
+        if (user._id !== post.creatorId) {
+            const regex = /[^><]\w+/gm
+            let content = post.content.match(regex)
+            if (content) content = content[0].substring(0, 8)
+
+            const noti = new Notification({
+                userId: post.creatorId,
+                fromId: user._id,
+                option: 'commentpost',
+                contentId: postId,
+                content: `commented on your post "${content}"`
+            })
+
+            await noti.save()
+            pushNoti({
+                id: noti._id,
+                userId: noti.userId,
+                fromId: noti.fromId,
+                option: noti.option,
+                contentId: noti.contentId,
+                content: noti.content
+            })
+        }
 
         await comment.save()
         await post.save()

@@ -3,6 +3,7 @@ const { commentQuery, commentMutation, commentResolver } = require('./commentRes
 const { postQuery, postMutation, postResolver } = require('./postResolver')
 const { userQuery, userMutation, userResolver } = require('./userResolver')
 const { messageQuery, messageMutation, messageSubscription, messageResolver } = require('./messageResolver')
+const { notificationQuery, notificationSubscription, notificationResolver } = require('./notificationResolver')
 const { typeResolver } = require('./typeResolver')
 
 const resolvers = {
@@ -10,7 +11,8 @@ const resolvers = {
         ...userQuery,
         ...postQuery,
         ...commentQuery,
-        ...messageQuery
+        ...messageQuery,
+        ...notificationQuery
     },
     Mutation: {
         ...authMutation,
@@ -20,12 +22,14 @@ const resolvers = {
         ...messageMutation
     },
     Subscription: {
-        ...messageSubscription
+        ...messageSubscription,
+        ...notificationSubscription
     },
     ...userResolver,
     ...postResolver,
     ...commentResolver,
     ...messageResolver,
+    ...notificationResolver,
     ...typeResolver
 }
 

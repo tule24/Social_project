@@ -1,21 +1,31 @@
 const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
+const { pushNoti } = require('../../graphql/resolvers/notificationResolver')
+
 
 const commentQuery = {
     commentOfPost: catchAsync(async (_, { postId, page }, { dbMethods, req }) => {
         const user = await checkAuth(req)
         return await dbMethods.getCommentsOfPost(user._id, postId, page)
     }),
+    commentById: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
+        await checkAuth(req)
+        return await dbMethods.getCommentById(commentId)
+    }),
     repliesOfComment: catchAsync(async (_, { commentId, page }, { dbMethods, req }) => {
         const user = await checkAuth(req)
         return await dbMethods.getRepliesOfComment(user._id, commentId, page)
+    }),
+    repliesById: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
+        await checkAuth(req)
+        return await dbMethods.getRepliesById(commentId, repliesId)
     }),
 }
 
 const commentMutation = {
     createComment: catchAsync(async (_, { postId, content }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.createComment(user, postId, content)
+        return await dbMethods.createComment(user, postId, content, pushNoti)
     }),
     updateComment: catchAsync(async (_, { commentId, content }, { dbMethods, req }) => {
         const user = await checkAuth(req)

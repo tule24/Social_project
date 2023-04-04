@@ -1,5 +1,6 @@
 const User = require('../../models/User')
 const Message = require('../../models/Message')
+const Notification = require('../../models/Notification')
 const GraphError = require('../../errors')
 const { checkPassword } = require('../../helpers/authHelper')
 const { updateId, addId, checkFound, removeId } = require('../../helpers/methodHelper')
@@ -57,7 +58,7 @@ const userMethod = {
         await user.save()
         return user
     },
-    handleAddFriend: async (user, friendId) => {
+    handleAddFriend: async (user, friendId, pushNoti) => {
         const friend = await checkFound(friendId, User)
 
         friend.friends = addId(friend.friends, user._id, 'request')
@@ -65,6 +66,25 @@ const userMethod = {
 
         await user.save()
         await friend.save()
+
+        const noti = new Notification({
+            userId: friendId,
+            fromId: user._id,
+            option: 'addfriend',
+            contentId: user._id,
+            content: `sent you a friend request`
+        })
+
+        await noti.save()
+        pushNoti({
+            id: noti._id,
+            userId: noti.userId,
+            fromId: noti.fromId,
+            option: noti.option,
+            contentId: noti.contentId,
+            content: noti.content
+        })
+
         return {
             id: friend._id,
             name: friend.name,
@@ -72,7 +92,7 @@ const userMethod = {
             status: 'waiting'
         }
     },
-    handleConfirmFriend: async (user, friendId) => {
+    handleConfirmFriend: async (user, friendId, pushNoti) => {
         const friend = await checkFound(friendId, User)
 
         user.friends = updateId(user.friends, friendId, 'confirm')
@@ -89,6 +109,24 @@ const userMethod = {
         await user.save()
         await friend.save()
 
+        const noti = new Notification({
+            userId: friendId,
+            fromId: user._id,
+            option: 'confirmfriend',
+            contentId: user._id,
+            content: `confirmed your request`
+        })
+
+        await noti.save()
+        pushNoti({
+            id: noti._id,
+            userId: noti.userId,
+            fromId: noti.fromId,
+            option: noti.option,
+            contentId: noti.contentId,
+            content: noti.content
+        })
+
         return {
             id: friend._id,
             name: friend.name,
@@ -104,6 +142,15 @@ const userMethod = {
 
         await user.save()
         await friend.save()
+
+        pushNoti({
+            id: 'unfriend',
+            userId: friendId,
+            fromId: user._id,
+            option: 'unfriend',
+            contentId: user._id,
+            content: 'unfriend'
+        })
 
         return {
             id: friend._id,

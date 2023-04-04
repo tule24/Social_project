@@ -35,8 +35,8 @@ const messageSubscription = {
             () => {
                 return pubsub.asyncIterator('MESSAGE_CREATED')
             },
-            (parent, _, { user }) => {
-                return parent.messageCreated.users.includes(user._id)
+            (parent, _, { userId }) => {
+                return parent.messageCreated.users.includes(userId)
             }
         )
     }

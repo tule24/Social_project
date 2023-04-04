@@ -1,5 +1,6 @@
 const catchAsync = require('../../helpers/catchAsync')
 const { checkAuth } = require('../../helpers/authHelper')
+const { pushNoti } = require('../../graphql/resolvers/notificationResolver')
 
 const postQuery = {
     post: catchAsync(async (_, { postId }, { dbMethods, req }) => {
@@ -28,11 +29,11 @@ const postMutation = {
     }),
     likePost: catchAsync(async (_, { postId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.likePost(user, postId)
+        return await dbMethods.likePost(user, postId, pushNoti)
     }),
     unlikePost: catchAsync(async (_, { postId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.unlikePost(user, postId)
+        return await dbMethods.unlikePost(user, postId, pushNoti)
     }),
     deletePost: catchAsync(async (_, { postId }, { dbMethods, req }) => {
         const user = await checkAuth(req)

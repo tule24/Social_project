@@ -8,9 +8,9 @@ type Query {
   postOfUser(userId: ID!, page: Int, limit: Int): [Post]!
   commentOfPost(postId: ID!, page: Int, limit: Int): [Comment]!
   commentById(commentId: ID!): Comment!
-  repliesOfComment(commentId: ID!, page: Int, limit: Int): [Replies]!
+  repliesOfComment(commentId: ID!): [Replies]!
   repliesById(commentId: ID!, repliesId: ID!): Replies!
-  getMessageRoom(roomId: ID!, page: Int, limit: Int): MessageRoom!
+  getMessageRoom(roomId: ID!): MessageRoom!
   getNotification(page: Int, limit: Int): [Notification]!
 }
 

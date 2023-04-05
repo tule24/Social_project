@@ -1,6 +1,7 @@
 const { checkAuth } = require('../../helpers/authHelper')
 const { catchAsync } = require('../../helpers/catchAsync')
 const { pushNoti } = require('../../graphql/resolvers/notificationResolver')
+const { getUserById } = require('../../helpers/methodHelper')
 
 const postQuery = {
     post: catchAsync(async (_, { postId }, { dbMethods, req }) => {
@@ -46,8 +47,9 @@ const postMutation = {
 
 const postResolver = {
     Post: {
-        creator: catchAsync(({ creatorId }, _, { dbMethods }) => {
-            return dbMethods.getUserById(creatorId)
+        creator: catchAsync(async ({ creatorId }, _, { userLoader }) => {
+            const creator = await userLoader.load(creatorId.toString())
+            return creator
         }),
         userLike: catchAsync(({ like }, _, { dbMethods }) => {
             return dbMethods.getUserLike(like)

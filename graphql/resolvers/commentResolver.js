@@ -12,9 +12,9 @@ const commentQuery = {
         await checkAuth(req)
         return await dbMethods.getCommentById(commentId)
     }),
-    repliesOfComment: catchAsync(async (_, { commentId, ...args }, { dbMethods, req }) => {
+    repliesOfComment: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return await dbMethods.getRepliesOfComment(user._id, commentId, args)
+        return await dbMethods.getRepliesOfComment(user._id, commentId)
     }),
     repliesById: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
         await checkAuth(req)
@@ -68,8 +68,9 @@ const commentMutation = {
 
 const commentResolver = {
     Comment: {
-        creator: catchAsync(({ creatorId }, _, { dbMethods }) => {
-            return dbMethods.getUserById(creatorId)
+        creator: catchAsync(async ({ creatorId }, _, { userLoader }) => {
+            const creator = await userLoader.load(creatorId.toString())
+            return creator
         }),
         userLike: catchAsync(({ like }, _, { dbMethods }) => {
             return dbMethods.getUserLike(like)
@@ -83,8 +84,9 @@ const commentResolver = {
 
     },
     Replies: {
-        creator: catchAsync(({ creatorId }, _, { dbMethods }) => {
-            return dbMethods.getUserById(creatorId)
+        creator: catchAsync(async ({ creatorId }, _, { userLoader }) => {
+            const creator = await userLoader.load(creatorId.toString())
+            return creator
         }),
         userLike: catchAsync(({ like }, _, { dbMethods }) => {
             return dbMethods.getUserLike(like)

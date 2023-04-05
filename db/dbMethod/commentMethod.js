@@ -16,11 +16,10 @@ const commentMethod = {
         const comment = await checkFound(commentId, Comment)
         return comment
     },
-    getRepliesOfComment: async (userId, commentId, args) => {
-        const { limit, skip } = pagination(args)
+    getRepliesOfComment: async (userId, commentId) => {
         const comment = await checkFound(commentId, Comment)
         const { replies } = comment
-        const res = replies.slice(skip, skip + limit).map(el => convertReplies(el, userId))
+        const res = replies.map(el => convertReplies(el, userId))
         return res
     },
     getRepliesById: async (commentId, repliesId) => {

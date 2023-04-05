@@ -10,6 +10,7 @@ const userMethod = {
     // handle query
     getUserById: async (userId) => {
         const user = await checkFound(userId, User)
+        console.log(`Calling getUserById for id: ${userId}`)
         return user
     },
     getUserLike: async (like) => {

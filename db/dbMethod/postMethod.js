@@ -20,7 +20,7 @@ const postMethod = {
     },
     getPostsOfOwner: async (userId, args) => {
         const { limit, skip } = pagination(args)
-        const posts = await Post.find({ creatorId: userId }).sort('-updatedAt').skip(limit).limit(skip)
+        const posts = await Post.find({ creatorId: userId }).sort('-updatedAt').skip(skip).limit(limit)
         const res = posts.map(el => convertPost(el, userId))
         return res
     },

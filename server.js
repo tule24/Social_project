@@ -23,7 +23,8 @@ const resolvers = require('./graphql/resolvers')
 const dbMethods = require('./db/dbMethod')
 const { checkAuth } = require('./helpers/authHelper')
 const GraphError = require('./errors')
-
+const DataLoader = require('dataloader')
+const { getUserLoader } = require('./helpers/methodHelper')
 
 async function start() {
     const app = express()
@@ -70,7 +71,11 @@ async function start() {
 
         await server.start()
         app.use('/graphql', expressMiddleware(server, {
-            context: ({ req }) => ({ dbMethods, req })
+            context: ({ req }) => ({
+                dbMethods,
+                req,
+                userLoader: new DataLoader(async ids => ids.map(id => getUserLoader(id)))
+            })
         }))
 
         await connectDB(process.env.MONGO_URI)

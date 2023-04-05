@@ -15,14 +15,7 @@ const messageMethod = {
             )
         }
 
-        const { limit, skip } = pagination(args)
-        const { messages } = messageRoom._doc
-        const newMsg = messages.slice(skip, skip + limit)
-        return {
-            ...messageRoom._doc,
-            id: messageRoom._id,
-            messages: newMsg
-        }
+        return messageRoom
     },
     getMessageOfUser: async (messageRooms) => {
         const messageRoomsArr = await Message.find({ _id: { $in: messageRooms } })

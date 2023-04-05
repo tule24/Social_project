@@ -1,4 +1,5 @@
 const GraphError = require('../errors')
+const User = require('../models/User')
 
 const removeId = (arr, userId) => {
     const index = arr.findIndex(el => el.userId.equals(userId))
@@ -62,4 +63,10 @@ const pagination = (args) => {
     return { limit, skip }
 }
 
-module.exports = { updateId, addId, removeId, checkFound, pagination }
+const getUserLoader = async (id) => {
+    const users = await User.find({})
+    console.log('getUserById for id: ', id)
+    return users.find(el => el._id.equals(id))
+}
+
+module.exports = { updateId, addId, removeId, checkFound, pagination, getUserLoader }

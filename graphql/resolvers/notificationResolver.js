@@ -12,8 +12,9 @@ const notificationQuery = {
 
 const notificationResolver = {
     Notification: {
-        from: catchAsync(async ({ fromId }, _, { dbMethods }) => {
-            return dbMethods.getUserById(fromId)
+        from: catchAsync(async ({ fromId }, _, { userLoader }) => {
+            const from = await userLoader.load(fromId.toString())
+            return from
         })
     }
 }

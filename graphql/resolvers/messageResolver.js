@@ -4,9 +4,9 @@ const { PubSub, withFilter } = require('graphql-subscriptions')
 const pubsub = new PubSub()
 
 const messageQuery = {
-    getMessageRoom: catchAsync(async (_, { roomId, ...args }, { dbMethods, req }) => {
+    getMessageRoom: catchAsync(async (_, { roomId }, { dbMethods, req }) => {
         const user = await checkAuth(req)
-        return dbMethods.getMessageRoom(user, roomId, args)
+        return dbMethods.getMessageRoom(user, roomId)
     })
 }
 
@@ -44,8 +44,12 @@ const messageSubscription = {
 
 const messageResolver = {
     Message: {
-        creator: catchAsync(async ({ creator, creatorId }, _, { dbMethods }) => {
-            return creator ? creator : await dbMethods.getUserById(creatorId)
+        creator: catchAsync(async ({ creator, creatorId }, _, { userLoader }) => {
+            if (creator) {
+                return creator
+            }
+            const res = await userLoader.load(creatorId.toString())
+            return res
         })
     },
     MessageRoom: {

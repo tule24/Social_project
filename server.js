@@ -24,7 +24,6 @@ const dbMethods = require('./db/dbMethod')
 const { checkAuth } = require('./helpers/authHelper')
 const GraphError = require('./errors')
 const DataLoader = require('dataloader')
-const { getUserLoader } = require('./helpers/methodHelper')
 
 async function start() {
     const app = express()
@@ -74,7 +73,7 @@ async function start() {
             context: ({ req }) => ({
                 dbMethods,
                 req,
-                userLoader: new DataLoader(async ids => ids.map(id => getUserLoader(id)))
+                userLoader: new DataLoader(async ids => ids.map(id => dbMethods.getUserById(id)))
             })
         }))
 

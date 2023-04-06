@@ -10,7 +10,6 @@ const userMethod = {
     // handle query
     getUserById: async (userId) => {
         const user = await checkFound(userId, User)
-        console.log(`Calling getUserById for id: ${userId}`)
         return user
     },
     getUserLike: async (like) => {
@@ -44,8 +43,15 @@ const userMethod = {
 
         let newUser
         if (userInput.ava) {
-            const ava = await uploadImage(userInput.ava)
-            newUser = await User.findByIdAndUpdate(user._id, { ava }, { new: true, runValidators: true })
+            const ava = await uploadImage([userInput.ava])
+            if (ava.length > 0) {
+                newUser = await User.findByIdAndUpdate(user._id, { ava: ava[0] }, { new: true, runValidators: true })
+            } else {
+                throw GraphError(
+                    "Something wrong when upload image to cloudinary",
+                    "BAD_REQUEST"
+                )
+            }
         } else {
             newUser = await User.findByIdAndUpdate(user._id, userInput, { new: true, runValidators: true })
         }

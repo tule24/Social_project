@@ -63,10 +63,4 @@ const pagination = (args) => {
     return { limit, skip }
 }
 
-const getUserLoader = async (id) => {
-    const users = await User.find({})
-    console.log('getUserById for id: ', id)
-    return users.find(el => el._id.equals(id))
-}
-
-module.exports = { updateId, addId, removeId, checkFound, pagination, getUserLoader }
+module.exports = { updateId, addId, removeId, checkFound, pagination }

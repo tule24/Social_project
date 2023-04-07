@@ -27,10 +27,6 @@ const DataLoader = require('dataloader')
 
 async function start() {
     const app = express()
-    app.use(express.json({ limit: '25mb' }));
-    app.use(express.urlencoded({ limit: '25mb' }));
-    app.use(cors())
-
     const httpServer = createServer(app)
     const schema = makeExecutableSchema({ typeDefs, resolvers })
 
@@ -73,7 +69,7 @@ async function start() {
         })
 
         await server.start()
-        app.use('/graphql', expressMiddleware(server, {
+        app.use('/graphql', cors(), express.json({ limit: '25mb' }), express.urlencoded({ limit: '25mb' }), expressMiddleware(server, {
             context: ({ req }) => ({
                 dbMethods,
                 req,

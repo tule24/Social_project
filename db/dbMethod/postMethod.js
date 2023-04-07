@@ -102,15 +102,14 @@ const postMethod = {
         if (!user._id.equals(post.creatorId)) {
             const oldNoti = await Notification.findOne({ fromId: user._id, option: 'likepost', contentId: postId })
             if (!oldNoti) {
-                const regex = /[^><]\w+/gm
-                let content = post.content.match(regex)
-                if (content) content = content[0].substring(0, 8)
+                const regex = /<[^>]*>/gm
+                let content = post.content.replace(regex, '').substring(0, 15)
                 const noti = new Notification({
                     userId: post.creatorId,
                     fromId: user._id,
                     option: 'likepost',
                     contentId: postId,
-                    content: `liked your post "${content}"`
+                    content: `liked your post "${content}.."`
                 })
 
                 await noti.save()

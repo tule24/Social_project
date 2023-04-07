@@ -1,7 +1,6 @@
 const { checkAuth } = require('../../helpers/authHelper')
 const { catchAsync } = require('../../helpers/catchAsync')
 const { pushNoti } = require('../../graphql/resolvers/notificationResolver')
-const { getUserById } = require('../../helpers/methodHelper')
 
 const postQuery = {
     post: catchAsync(async (_, { postId }, { dbMethods, req }) => {

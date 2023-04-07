@@ -44,7 +44,11 @@ async function start() {
             context: async (ctx) => {
                 try {
                     const user = await checkAuth(ctx.connectionParams, true)
-                    return { dbMethods, userId: user._id }
+                    return {
+                        dbMethods,
+                        userId: user._id,
+                        userLoader: new DataLoader(async ids => ids.map(id => dbMethods.getUserById(id)))
+                    }
                 } catch (error) {
                     throw GraphError(error.message, 'UNAUTHORIZED')
                 }

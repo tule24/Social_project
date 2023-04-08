@@ -13,7 +13,7 @@
   - [Notification](#notification-schema)
 ## Install & run
 `yarn install`: install dependencies in package.json  
-`yarn test`: run app in development env  
+`yarn dev`: run app in development env  
 `node server.js`: run app in product env
 
 ## Documentation

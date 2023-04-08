@@ -1351,7 +1351,7 @@ messageCreated: {
      )
 }
 ```
-### `Message Schema`
+### `Notification Schema`
 |*|Type|Resolver|  
 |-|-|-|
 |Query|getNotification|[getNotification](#getNotification)|

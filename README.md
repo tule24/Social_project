@@ -106,7 +106,7 @@ httpServer.listen(PORT, () => {
 |logout|[logout](#logout)|
 |refreshToken|[refreshToken](#refreshToken)|
 
-#### `Base type`
+### `Base type`
 ```graphql
 type Auth {
   user: User!
@@ -114,12 +114,12 @@ type Auth {
   refreshToken: String!
 }
 ```
-#### `register`
-#### Mutation
+### `register`
+##### Mutation
 ```graphql
 register(registerInput: registerInput!): User!
 ```
-#### Input
+##### Input
 ```graphql
 input registerInput {
   name: String
@@ -131,7 +131,7 @@ input registerInput {
   address: String
 }
 ```
-#### Resolver
+##### Resolver
 ```js
 async ({ name, password, email }) => {
      if (!name || !password || !email) {
@@ -158,19 +158,19 @@ async ({ name, password, email }) => {
      return newUser
 }
 ```
-#### `login`
-#### Mutation
+### `login`
+##### Mutation
 ```graphql
 login(loginInput: loginInput!): Auth!
 ```
-#### Input type
+##### Input type
 ```graphql
 input loginInput {
   email: String
   password: String
 }
 ```
-#### Resolver
+##### Resolver
 ```js
 async ({ email, password }) => {
      if (!email || !password) {
@@ -206,12 +206,12 @@ async ({ email, password }) => {
      }
 }
 ```
-#### `logout`
-#### Mutation
+### `logout`
+##### Mutation
 ```graphql
 logout: String!
 ```
-#### Resolver
+##### Resolver
 ```js
 async (req) => {
      const user = await checkAuth(req)
@@ -219,12 +219,12 @@ async (req) => {
      await user.save()
 }
 ```
-#### `refreshToken`
-#### Mutation
+### `refreshToken`
+##### Mutation
 ```graphql
 refreshToken(refreshToken: String!): Auth!
 ```
-#### Resolver
+##### Resolver
 ```js
 async (refreshToken) => {
      const user = await User.findOne({ refreshToken })

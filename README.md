@@ -3,7 +3,7 @@
 
 ## Menu 
 - [Install & run](#install)
-- [Set up server](#server.js)
+- [server.js](#server.js)
 
 ## Install & run
 `yarn install`: install dependencies in package.json  

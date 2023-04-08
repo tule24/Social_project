@@ -4,7 +4,11 @@
 ## Menu 
 - [Install & run](#install--run)
 - [Setup server](#serverjs)
-
+  - [Express](#express)
+  - [Apollo & graphql](#apollo--graphql)
+  - [WebSocketServer](#websocketserver)
+  - [ApolloServer](#apolloserver)
+  - [App Server](#appserver)
 ## Install & run
 `yarn install`: install dependencies in package.json  
 `yarn test`: run app in development env  
@@ -12,14 +16,14 @@
 
 ## Documentation
 ### `server.js`
-Set up express
+#### Express
 ```js
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const { createServer } = require('http')
 ```
-Set up apollo & graphql
+#### Apollo & graphql
 ```js
 // apollo
 const { ApolloServer } = require('@apollo/server')
@@ -39,7 +43,7 @@ const resolvers = require('./graphql/resolvers')
 const GraphError = require('./errors')
 const DataLoader = require('dataloader')
 ```
-Set up WebSocketServer
+#### WebSocketServer
 ```js
 const wsServer = new WebSocketServer({
      server: httpServer,
@@ -61,7 +65,7 @@ const serverCleanup = useServer({
      }
 }, wsServer)
 ```
-Set up ApolloServer
+#### ApolloServer
 ```js
 const server = new ApolloServer({
      schema,
@@ -80,7 +84,7 @@ const server = new ApolloServer({
      includeStacktraceInErrorResponses: false
 })
 ```
-Set up app server
+#### App server
 ```js
 await server.start()
 app.use('/graphql', cors(), express.json({ limit: '25mb' }), express.urlencoded({ limit: '25mb' }), expressMiddleware(server, {

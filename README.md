@@ -7,6 +7,7 @@
 - Code flow
   - [Auth](#auth-schema)
   - [User](#user-schema)
+  - [Post](#post-schema)
 ## Install & run
 `yarn install`: install dependencies in package.json  
 `yarn test`: run app in development env  
@@ -407,6 +408,8 @@ async (user, friendId, pushNoti) => {
      })
 
      await noti.save()
+     
+     // notification subscription
      pushNoti({
           id: noti._id,
           userId: noti.userId,
@@ -457,6 +460,8 @@ async (user, friendId, pushNoti) => {
      })
 
      await noti.save()
+     
+     // notification subscription
      pushNoti({
           id: noti._id,
           userId: noti.userId,
@@ -490,6 +495,7 @@ async (user, friendId) => {
      await user.save()
      await friend.save()
 
+     // notification subscription
      pushNoti({
           id: 'unfriend',
           userId: friendId,
@@ -516,5 +522,278 @@ messageRoomOfUser: [MessageRoom]
 async (messageRooms) => {
      const messageRoomsArr = await Message.find({ _id: { $in: messageRooms } })
      return messageRoomsArr
+}
+```
+### `Post Schema`
+|*|Type|Resolver|  
+|-|-|-|
+|Query|post|[getPostById](#post)|
+||postOfOwner|[getPostsOfOwner](#postOfOwner)|
+||postForUser|[getPostsForUser](#postForUser)|
+||postOfUser|[getPostsOfUser](#postOfUser)|
+|Mutation|createPost|[createPost](#createPost)|
+||updatePost|[updatePost](#updatePost)|
+||deletePost|[deletePost](#deletePost)|
+||likePost|[likePost](#likePost)|
+||unlikePost|[unlikePost](#unlikePost)|
+
+
+### `Base type`
+```graphql
+type Post {
+  id: ID!
+  creator: User!
+  content: String
+  media: [String]
+  totalLike: Int!
+  userLike: [User]!
+  liked: Boolean!
+  vision: String!
+  totalComment: Int!
+  createdAt: Date!
+  updatedAt: Date!
+}
+```
+### `post`
+##### Query
+```graphql
+post(postId: ID!): Post!
+```
+##### Resolver
+```js
+async (userId, postId) => {
+     const post = await checkFound(postId, Post)
+     return convertPost(post, userId)
+}
+```
+### `postOfOwner`
+##### Query
+```graphql
+postOfOwner(page: Int, limit: Int): [Post]!
+```
+##### Resolver
+```js
+async (userId, args) => {
+     const { limit, skip } = pagination(args)
+     const posts = await Post.find({ creatorId: userId }).sort('-updatedAt').skip(skip).limit(limit)
+     const res = posts.map(el => convertPost(el, userId))
+     return res
+}
+```
+### `postForUser`
+##### Query
+```graphql
+postForUser(page: Int, limit: Int): [Post]!
+```
+##### Resolver
+```js
+async (user, args) => {
+     const { limit, skip } = pagination(args)
+     const friendIds = user.friends.filter(el => el.status === 'confirm').map(el => el.userId)
+     const posts = await Post.find({
+          $or: [
+               { creatorId: { $in: [user._id, ...friendIds] }, vision: { $ne: 'private' } },
+               { vision: 'public' }
+          ]
+     }).sort('-updatedAt').skip(skip).limit(limit)
+     const res = posts.map(el => convertPost(el, user._id))
+     return res
+}
+```
+### `postOfUser`
+##### Query
+```graphql
+postOfUser(userId: ID!, page: Int, limit: Int): [Post]!
+```
+##### Resolver
+```js
+async (caller, userId, args) => {
+     const vision = ['public']
+     const checkFriend = caller.friends.find(el => el.userId.equals(userId) && el.status === 'confirm')
+     if (checkFriend) vision.push('friend')
+     const { limit, skip } = pagination(args)
+     const posts = await Post.find({ creatorId: userId, vision: { $in: vision } }).sort('updatedAt').skip(skip).limit(limit)
+     const res = posts.map(el => convertPost(el, caller._id))
+     return res
+}
+```
+### `createPost`
+##### Mutation
+```graphql
+createPost(postInput: postInput!): Post!
+```
+##### Input
+```graphql
+input postInput {
+  content: String
+  media: [String]
+  vision: String
+}
+```
+##### Resolver
+```js
+async (user, { content, media, vision }) => {
+     if (!content) {
+          throw GraphError(
+               "Please provide content",
+               "BAD_REQUEST"
+          )
+     }
+
+     const newMedia = media ? await uploadImage(media) : []
+     const newPost = new Post({
+          creatorId: user._id,
+          content,
+          media: newMedia,
+          vision: vision || "public"
+     })
+
+     await newPost.save()
+     return newPost
+}
+```
+### `updatePost`
+##### Mutation
+```graphql
+updatePost(postId: ID!, postInput: postInput!): Post!
+```
+##### Resolver
+```js
+async (user, postId, postInput) => {
+     const { content, media, vision } = postInput
+     let newMedia = []
+     if (media) {
+          const fileUrl = []
+          media.forEach(el => {
+               if (el.startsWith('http://res.cloudinary.com')) {
+                    newMedia.push(el)
+               } else {
+                    fileUrl.push(el)
+               }
+          })
+          const fileToImage = await uploadImage(fileUrl)
+          newMedia = [...newMedia, ...fileToImage]
+     }
+
+     const updateInput = {
+          content,
+          media: newMedia,
+          vision
+     }
+
+     const post = await Post.findOneAndUpdate(
+          { _id: postId, creatorId: user._id },
+          updateInput,
+          { new: true, runValidators: true }
+     )
+     if (!post) {
+          throw GraphError(
+               "Post not found or you aren't post's owner",
+               "NOT_FOUND"
+          )
+     }
+     return post
+}
+```
+### `deletePost`
+##### Mutation
+```graphql
+deletePost(postId: ID!): Post!
+```
+##### Resolver
+```js
+async (user, postId) => {
+     const post = await Post.findOneAndDelete({ _id: postId, creatorId: user._id })
+     if (!post) {
+          throw GraphError(
+               "Post not found or you aren't post's owner",
+               "NOT_FOUND"
+          )
+     }
+
+     await Comment.deleteMany({ postId })
+     return post
+}
+```
+### `likePost`
+##### Mutation
+```graphql
+likePost(postId: ID!): Post!
+```
+##### Resolver
+```js
+async (user, postId, pushNoti) => {
+     const post = await Post.findOneAndUpdate(
+          { _id: postId, like: { $ne: user._id } },
+          { $push: { like: user._id } },
+          { new: true, runValidators: true }
+     )
+
+     if (!user._id.equals(post.creatorId)) {
+          const oldNoti = await Notification.findOne({ fromId: user._id, option: 'likepost', contentId: postId })
+          if (!oldNoti) {
+               const regex = /<[^>]*>/gm
+               let content = post.content.replace(regex, '').substring(0, 15)
+               const noti = new Notification({
+                    userId: post.creatorId,
+                    fromId: user._id,
+                    option: 'likepost',
+                    contentId: postId,
+                    content: `liked your post "${content}.."`
+               })
+
+               await noti.save()
+               
+               // notification subscription
+               pushNoti({
+                    id: noti._id,
+                    userId: noti.userId,
+                    fromId: noti.fromId,
+                    option: noti.option,
+                    contentId: noti.contentId,
+                    content: noti.content
+               })
+          }
+     }
+
+     if (!post) {
+          throw GraphError(
+               "You already liked this post",
+               "BAD_REQUEST"
+          )
+     }
+     return post
+}
+```
+### `unlikePost`
+##### Mutation
+```graphql
+unlikePost(postId: ID!): Post!
+```
+##### Resolver
+```js
+async (user, postId) => {
+     const post = await Post.findOneAndUpdate(
+          { _id: postId, like: user._id },
+          { $pull: { like: user._id } },
+          { new: true, runValidators: true }
+     )
+     if (!post) {
+          throw GraphError(
+               "You didn't like this post",
+               "BAD_REQUEST"
+          )
+     }
+
+     // notification subscription
+     pushNoti({
+          id: 'unlikepost',
+          userId: post.creatorId,
+          fromId: user._id,
+          option: 'unlikepost',
+          contentId: postId,
+          content: 'unlikepost'
+     })
+     return post
 }
 ```

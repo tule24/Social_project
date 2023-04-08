@@ -8,6 +8,7 @@
   - [Auth](#auth-schema)
   - [User](#user-schema)
   - [Post](#post-schema)
+  - [Comment](#comment-schema)
 ## Install & run
 `yarn install`: install dependencies in package.json  
 `yarn test`: run app in development env  
@@ -795,5 +796,368 @@ async (user, postId) => {
           content: 'unlikepost'
      })
      return post
+}
+```
+### `Comment Schema`
+|*|Type|Resolver|  
+|-|-|-|
+|Query|commentOfPost|[getCommentsOfPost](#commentOfPost)|
+||commentById|[getCommentById](#commentById)|
+||repliesOfComment|[getRepliesOfComment](#repliesOfComment)|
+||repliesById|[getRepliesById](#repliesById)|
+|Mutation|createComment|[createComment](#createComment)|
+||updateComment|[updateComment](#updateComment)|
+||deleteComment|[deleteComment](#deleteComment)|
+||likeComment|[likeComment](#likeComment)|
+||unlikeComment|[unlikeComment](#unlikeComment)|
+||createReplies|[createReplies](#createReplies)|
+||updateReplies|[updateReplies](#updateReplies)|
+||likeReplies|[likeReplies](#likeReplies)|
+||unlikeReplies|[unlikeReplies](#unlikeReplies)|
+||deleteReplies|[deleteReplies](#deleteReplies)|
+
+### `Base type`
+```graphql
+type Comment {
+  id: ID!
+  creator: User!
+  content: String!
+  createdAt: Date!
+  totalLike: Int!
+  userLike: [User]!
+  liked: Boolean!
+  totalReplies: Int!
+}
+
+type Replies {
+  id: ID!
+  creator: User!
+  content: String!
+  createdAt: Date!
+  totalLike: Int!
+  liked: Boolean!
+  userLike: [User]!
+}
+```
+### `commentOfPost`
+##### Query
+```graphql
+commentOfPost(postId: ID!, page: Int, limit: Int): [Comment]!
+```
+##### Resolver
+```js
+async (userId, postId, args) => {
+     const { limit, skip } = pagination(args)
+     const comments = await Comment.find({ postId }).sort('-updatedAt').skip(skip).limit(limit)
+     const res = comments.map(el => convertComment(el, userId))
+     return res
+}
+```
+### `commentById`
+##### Query
+```graphql
+commentById(commentId: ID!): Comment!
+```
+##### Resolver
+```js
+async (commentId) => {
+     const comment = await checkFound(commentId, Comment)
+     return comment
+}
+```
+### `repliesOfComment`
+##### Query
+```graphql
+repliesOfComment(commentId: ID!): [Replies]!
+```
+##### Resolver
+```js
+async (userId, commentId) => {
+     const comment = await checkFound(commentId, Comment)
+     const { replies } = comment
+     const res = replies.map(el => convertReplies(el, userId))
+     return res
+}
+```
+### `repliesById`
+##### Query
+```graphql
+repliesOfComment(commentId: ID!): [Replies]!
+```
+##### Resolver
+```js
+async (commentId, repliesId) => {
+     const comment = await checkFound(commentId, Comment)
+     const replies = comment.replies.find(el => el._id.equals(repliesId))
+     if (!replies) {
+          throw GraphError(
+               "Replies not found",
+               "NOT_FOUND"
+          )
+     }
+     return replies
+}
+```
+### `createComment`
+##### Mutation
+```graphql
+createComment(postId: ID!, content: String!): Comment!
+```
+##### Resolver
+```js
+async (user, postId, content, pushNoti) => {
+     const post = await checkFound(postId, Post)
+     if (!content) {
+          throw GraphError(
+               "Please provide content",
+               "BAD_REQUEST"
+          )
+     }
+
+     const comment = new Comment({
+          postId,
+          creatorId: user._id,
+          content,
+          like: [],
+          replies: []
+     })
+
+     post.totalComment += 1
+
+     if (!user._id.equals(post.creatorId)) {
+          const regex = /<[^>]*>/gm
+          let content = post.content.replace(regex, '').substring(0, 15)
+
+          const noti = new Notification({
+               userId: post.creatorId,
+               fromId: user._id,
+               option: 'commentpost',
+               contentId: postId,
+               content: `commented on your post "${content}.."`
+          })
+
+          await noti.save()
+
+          // notification subscription
+          pushNoti({
+               id: noti._id,
+               userId: noti.userId,
+               fromId: noti.fromId,
+               option: noti.option,
+               contentId: noti.contentId,
+               content: noti.content
+          })
+     }
+
+     await comment.save()
+     await post.save()
+     return comment
+}
+```
+### `updateComment`
+##### Mutation
+```graphql
+updateComment(commentId: ID!, content: String!): Comment!
+```
+##### Resolver
+```js
+async (user, commentId, content) => {
+     const comment = await Comment.findOneAndUpdate(
+          { _id: commentId, creatorId: user._id },
+          { content },
+          { new: true, runValidators: true }
+     )
+     if (!comment) {
+          throw GraphError(
+               "Comment not found or you aren't comment's owner",
+               "NOT_FOUND"
+          )
+     }
+     return comment
+}
+```
+### `deleteComment`
+##### Mutation
+```graphql
+deleteComment(commentId: ID!): Comment!
+```
+##### Resolver
+```js
+async (user, commentId) => {
+     const comment = await Comment.findOneAndDelete({ _id: commentId, creatorId: user._id })
+     if (!comment) {
+          throw GraphError(
+               "Comment not found or you aren't comment's owner",
+               "NOT_FOUND"
+          )
+     }
+
+     const post = await Post.findById(comment.postId)
+     post.totalComment -= 1
+     await post.save()
+
+     return comment
+}
+```
+### `likeComment`
+##### Mutation
+```graphql
+likeComment(commentId: ID!): Comment!
+```
+##### Resolver
+```js
+async (user, commentId) => {
+     const comment = await Comment.findOneAndUpdate(
+          { _id: commentId, like: { $ne: user._id } },
+          { $push: { like: user._id } },
+          { new: true, runValidators: true }
+     )
+     if (!comment) {
+          throw GraphError(
+               "You already liked this comment",
+               "BAD_REQUEST"
+          )
+     }
+return comment
+}
+```
+### `unlikeComment`
+##### Mutation
+```graphql
+unlikeComment(commentId: ID!): Comment!
+```
+##### Resolver
+```js
+async (user, commentId) => {
+     const comment = await Comment.findOneAndUpdate(
+          { _id: commentId, like: user._id },
+          { $pull: { like: user._id } },
+          { new: true, runValidators: true }
+     )
+     if (!comment) {
+          throw GraphError(
+               "You didn't like this comment",
+               "BAD_REQUEST"
+          )
+     }
+     return comment
+}
+```
+### `createReplies`
+##### Mutation
+```graphql
+createReplies(commentId: ID!, content: String!): Replies!
+```
+##### Resolver
+```js
+async (user, commentId, content) => {
+     const comment = await checkFound(commentId, Comment)
+     if (!content) {
+          throw GraphError(
+               "Please provide content",
+               "BAD_REQUEST"
+          )
+     }
+
+     const replies = {
+          creatorId: user._id,
+          content,
+          like: [],
+     }
+
+     comment.replies.push(replies)
+     await comment.save()
+     const newRep = comment.replies.pop()
+     return newRep
+}
+```
+### `updateReplies`
+##### Mutation
+```graphql
+updateReplies(commentId: ID!, repliesId: ID!, content: String!): Replies!
+```
+##### Resolver
+```js
+async (user, commentId, repliesId, content) => {
+     const comment = await Comment.findOneAndUpdate(
+          { _id: commentId, 'replies._id': repliesId, 'replies.creatorId': user._id },
+          { $set: { 'replies.$.content': content } },
+          { new: true, runValidators: true }
+     )
+     if (!comment) {
+          throw GraphError(
+               "Replies not found or you not replies's owner",
+               "NOT_FOUND"
+          )
+     }
+     const result = comment.replies.find(el => el._id.equals(repliesId))
+     return result
+}
+```
+### `likeReplies`
+##### Mutation
+```graphql
+likeReplies(commentId: ID!, repliesId: ID!): Replies!
+```
+##### Resolver
+```js
+async (user, commentId, repliesId) => {
+     const comment = await Comment.findOneAndUpdate(
+          { _id: commentId, 'replies._id': repliesId, 'replies.like': { $ne: user._id } },
+          { $push: { "replies.$.like": user._id } },
+          { new: true, runValidators: true }
+     )
+     if (!comment) {
+          throw GraphError(
+               "You already liked this replies",
+               "BAD_REQUEST"
+          )
+     }
+     const result = comment.replies.find(el => el._id.equals(repliesId))
+     return result
+}
+```
+### `unlikeReplies`
+##### Mutation
+```graphql
+unlikeReplies(commentId: ID!, repliesId: ID!): Replies!
+```
+##### Resolver
+```js
+async (user, commentId, repliesId) => {
+     const comment = await Comment.findOneAndUpdate(
+          { _id: commentId, 'replies._id': repliesId, 'replies.like': user._id },
+          { $pull: { "replies.$.like": user._id } },
+          { new: true, runValidators: true }
+     )
+     if (!comment) {
+          throw GraphError(
+               "You didn't like this replies",
+               "BAD_REQUEST"
+          )
+     }
+     const result = comment.replies.find(el => el._id.equals(repliesId))
+     return result
+}
+```
+### `deleteReplies`
+##### Mutation
+```graphql
+deleteReplies(commentId: ID!, repliesId: ID!): Replies!
+```
+##### Resolver
+```js
+async (user, commentId, repliesId) => {
+     const comment = await Comment.findOneAndUpdate(
+          { _id: commentId, 'replies._id': repliesId, 'replies.creatorId': user._id },
+          { '$pull': { replies: { _id: repliesId } } }
+     )
+     if (!comment) {
+          throw GraphError(
+               "Replies not found or you not replies's owner",
+               "NOT_FOUND"
+          )
+     }
+     return { id: repliesId }
 }
 ```

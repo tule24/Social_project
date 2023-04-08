@@ -9,6 +9,13 @@
   - [WebSocketServer](#websocketserver)
   - [ApolloServer](#apolloserver)
   - [App Server](#app-server)
+- [Setup models](#models)
+  - [User](#user-model)
+  - [Post](#post-model)
+  - [Comment](#comment-model)
+  - [Message](#message-model)
+  - [Notification](#notification-model)
+
 ## Install & run
 `yarn install`: install dependencies in package.json  
 `yarn test`: run app in development env  
@@ -100,4 +107,238 @@ const PORT = process.env.PORT || 4000
 httpServer.listen(PORT, () => {
      console.log(`🚀 Server running at http://localhost:${PORT}/graphql`);
 })
+```
+### `Models`  
+#### User model
+```js
+const userSchema = new Schema({
+    name: {
+        type: String,
+        require: [true, "Please provide your name"],
+        trim: true,
+        minLength: [3, "Name length >= 3"],
+        maxLength: [32, "Name length < 32"]
+    },
+    password: {
+        type: String,
+        require: [true, "Please provide password"]
+    },
+    email: {
+        type: String,
+        require: [true, "Please provide your email"],
+        validate: {
+            validator: function (val) {
+                return validator.default.isEmail(val)
+            },
+            message: "Email invalid"
+        }
+    },
+    dob: {
+        type: Date,
+        default: Date.now
+    },
+    ava: {
+        type: String,
+        default: '/avatar.png'
+    },
+    phone: String,
+    address: String,
+    friends: [
+        {
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'users'
+            },
+            status: {
+                type: String,
+                require: [true, 'Please provide status friend'],
+                enum: ['waiting', 'request', 'confirm']
+            }
+        }
+    ],
+    messageRooms: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'messages'
+        }
+    ],
+    refreshToken: String,
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date
+}, { timestamps: true })
+module.exports = model('users', userSchema)
+```
+#### Post model
+```js
+const postSchema = new Schema({
+    creatorId: {
+        type: Schema.Types.ObjectId,
+        ref: 'users',
+        require: [true, "Please provide creator id"]
+    },
+    content: {
+        type: String,
+        trim: true,
+        require: [true, "Please provide content"],
+        minLength: [1, "Content length > 0"]
+    },
+    media: [{
+        type: String
+    }],
+    like: [{
+        type: Schema.Types.ObjectId,
+        ref: 'users'
+    }],
+    vision: {
+        type: String,
+        enum: ['private', 'public', 'friend'],
+        default: 'friend'
+    },
+    totalComment: {
+        type: Number,
+        default: 0
+    }
+}, { timestamps: true })
+module.exports = model('posts', postSchema)
+```
+#### Comment model
+```js
+const commentSchema = new Schema({
+    postId: {
+        type: Schema.Types.ObjectId,
+        ref: 'posts'
+    },
+    creatorId: {
+        type: Schema.Types.ObjectId,
+        ref: 'users'
+    },
+    content: {
+        type: String,
+        trim: true,
+        require: [true, "Please provide content"],
+        minLength: [1, "Content length > 0"]
+    },
+    like: [{
+        type: Schema.Types.ObjectId,
+        ref: 'users'
+    }],
+    replies: [
+        {
+            creatorId: {
+                type: Schema.Types.ObjectId,
+                ref: 'users'
+            },
+            content: {
+                type: String,
+                trim: true,
+                require: [true, "Please provide content"],
+                minLength: [1, "Content length > 0"]
+            },
+            like: [{
+                type: Schema.Types.ObjectId,
+                ref: 'users'
+            }],
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ]
+}, { timestamps: true })
+module.exports = model('comments', commentSchema)
+```
+#### Message model
+```js
+const messageSchema = new Schema({
+    users: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'users'
+        }
+    ],
+    lastMessage: {
+        creatorId: {
+            type: Schema.Types.ObjectId,
+            ref: 'users',
+            require: [true, "Please provide creator id"]
+        },
+        content: {
+            type: String,
+            trim: true,
+            minLength: [1, "Content length > 0"]
+        }
+    },
+    messages: [
+        {
+            creatorId: {
+                type: Schema.Types.ObjectId,
+                ref: 'users',
+                require: [true, "Please provide creator id"]
+            },
+            content: [
+                {
+                    message: {
+                        type: String,
+                        trim: true,
+                        require: [true, "Please provide content"],
+                        minLength: [1, "Content length > 0"]
+                    },
+                    createdAt: {
+                        type: Date,
+                        default: Date.now
+                    }
+                }
+            ]
+        }
+    ]
+}, { timestamps: true })
+module.exports = model('messages', messageSchema)
+```
+#### Notification model 
+```js
+const messageSchema = new Schema({
+    users: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'users'
+        }
+    ],
+    lastMessage: {
+        creatorId: {
+            type: Schema.Types.ObjectId,
+            ref: 'users',
+            require: [true, "Please provide creator id"]
+        },
+        content: {
+            type: String,
+            trim: true,
+            minLength: [1, "Content length > 0"]
+        }
+    },
+    messages: [
+        {
+            creatorId: {
+                type: Schema.Types.ObjectId,
+                ref: 'users',
+                require: [true, "Please provide creator id"]
+            },
+            content: [
+                {
+                    message: {
+                        type: String,
+                        trim: true,
+                        require: [true, "Please provide content"],
+                        minLength: [1, "Content length > 0"]
+                    },
+                    createdAt: {
+                        type: Date,
+                        default: Date.now
+                    }
+                }
+            ]
+        }
+    ]
+}, { timestamps: true })
+module.exports = model('messages', messageSchema)
 ```

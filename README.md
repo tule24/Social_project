@@ -21,7 +21,31 @@
   - [Query type](#query-type)
   - [Mutation type](#mutation-type)
   - [Subscription type](#subscription-type)
-
+- [Setup resolver](#resolver)
+  - [Auth resolver](#auth-resolver)
+    - [Mutation](#auth-mutation)
+  - [User resolver](#user-resolver)
+    - [Query](#user-query)
+    - [Mutation](#user-mutation)
+    - [Type](#user-type)
+  - [Post resolver](#post-resolver)
+    - [Query](#post-query)
+    - [Mutation](#post-mutation)
+    - [Type](#post-type)
+  - [Comment resolver](#comment-resolver)
+    - [Query](#comment-query)
+    - [Mutation](#comment-mutation)
+    - [Type](#comment-type)
+  - [Message resolver](#message-resolver)
+    - [Query](#message-query)
+    - [Mutation](#message-mutation)
+    - [Subscription](#message-subscription)
+    - [Type](#message-type)
+  - [Notification resolver](#notification-resolver)
+    - [Query](#message-query)
+    - [Subscription](#message-subscription)
+    - [Type](#message-type)
+  - [Type resolver](#type-resolver)
 ## Install & run
 `yarn install`: install dependencies in package.json  
 `yarn test`: run app in development env  
@@ -556,5 +580,361 @@ type Subscription {
 
 #notification
   notificationCreated: Notification!
+}
+```
+### `Resolver`  
+#### `Auth resolver`
+#### Auth mutation
+```js
+const authMutation = {
+    register: catchAsync(async (_, { registerInput }, { dbMethods }) => {
+        const user = await dbMethods.regiser(registerInput)
+        return user
+    }),
+    login: catchAsync(async (_, { loginInput }, { dbMethods }) => {
+        const auth = await dbMethods.login(loginInput)
+        return auth
+    }),
+    logout: catchAsync(async (_, __, { dbMethods, req }) => {
+        await dbMethods.logout(req)
+        return "Logout success"
+    }),
+    refreshToken: catchAsync(async (_, { refreshToken }, { dbMethods }) => {
+        return await dbMethods.refreshToken(refreshToken)
+    })
+}
+```
+#### `User resolver`
+#### User query
+```js
+const userQuery = {
+    users: catchAsync(async (_, args, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.getAllUser(user, args)
+    }),
+    user: catchAsync(async (_, { userId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        const id = userId ? userId : user._id
+        return await dbMethods.getUserById(id)
+    }),
+    friendOfUser: catchAsync(async (_, __, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.getFriends(user._id)
+    })
+}
+```
+#### User mutation
+```js
+const userMutation = {
+    updateUser: catchAsync(async (_, { userInput }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.updateUser(user, userInput)
+    }),
+    changePassword: catchAsync(async (_, { oldPassword, newPassword }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.changePassword(user, oldPassword, newPassword)
+    }),
+    addFriend: catchAsync(async (_, { friendId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.handleAddFriend(user, friendId, pushNoti)
+    }),
+    confirmFriend: catchAsync(async (_, { friendId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.handleConfirmFriend(user, friendId, pushNoti)
+    }),
+    unFriend: catchAsync(async (_, { friendId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.handleUnFriend(user, friendId)
+    })
+}
+```
+#### User type
+const userResolver = {
+    User: {
+        messageRoomOfUser: ({ messageRooms }, _, { dbMethods }) => {
+            return dbMethods.getMessageOfUser(messageRooms)
+        }
+    }
+}
+#### `Post resolver`
+#### Post query
+```js
+const postQuery = {
+    post: catchAsync(async (_, { postId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.getPostById(user._id, postId)
+    }),
+    postForUser: catchAsync(async (_, args, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.getPostsForUser(user, args)
+    }),
+    postOfUser: catchAsync(async (_, { userId, ...args }, { dbMethods, req }) => {
+        const caller = await checkAuth(req)
+        return await dbMethods.getPostsOfUser(caller, userId, args)
+    }),
+    postOfOwner: catchAsync(async (_, args, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.getPostsOfOwner(user._id, args)
+    })
+}
+```
+#### Post mutation
+```js
+const postMutation = {
+    createPost: catchAsync(async (_, { postInput }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.createPost(user, postInput)
+    }),
+    updatePost: catchAsync(async (_, { postId, postInput }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.updatePost(user, postId, postInput)
+    }),
+    likePost: catchAsync(async (_, { postId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.likePost(user, postId, pushNoti)
+    }),
+    unlikePost: catchAsync(async (_, { postId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.unlikePost(user, postId, pushNoti)
+    }),
+    deletePost: catchAsync(async (_, { postId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.deletePost(user, postId)
+    })
+}
+```
+#### Post type
+```js
+const postResolver = {
+    Post: {
+        creator: catchAsync(async ({ creatorId }, _, { userLoader }) => {
+            const creator = await userLoader.load(creatorId.toString())
+            return creator
+        }),
+        userLike: catchAsync(({ like }, _, { dbMethods }) => {
+            return dbMethods.getUserLike(like)
+        }),
+        totalLike: ({ like }) => {
+            return like.length
+        }
+    }
+}
+```
+#### `Comment resolver`
+#### Comment query
+```js
+const commentQuery = {
+    commentOfPost: catchAsync(async (_, { postId, ...args }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.getCommentsOfPost(user._id, postId, args)
+    }),
+    commentById: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
+        await checkAuth(req)
+        return await dbMethods.getCommentById(commentId)
+    }),
+    repliesOfComment: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.getRepliesOfComment(user._id, commentId)
+    }),
+    repliesById: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
+        await checkAuth(req)
+        return await dbMethods.getRepliesById(commentId, repliesId)
+    }),
+}
+```
+#### Comment mutation
+```js
+const commentMutation = {
+    createComment: catchAsync(async (_, { postId, content }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.createComment(user, postId, content, pushNoti)
+    }),
+    updateComment: catchAsync(async (_, { commentId, content }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.updateComment(user, commentId, content)
+    }),
+    deleteComment: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.deleteComment(user, commentId)
+    }),
+    likeComment: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.likeComment(user, commentId)
+    }),
+    unlikeComment: catchAsync(async (_, { commentId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.unlikeComment(user, commentId)
+    }),
+
+    createReplies: catchAsync(async (_, { commentId, content }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.createReplies(user, commentId, content)
+    }),
+    updateReplies: catchAsync(async (_, { commentId, repliesId, content }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.updateReplies(user, commentId, repliesId, content)
+    }),
+    deleteReplies: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.deleteReplies(user, commentId, repliesId)
+    }),
+    likeReplies: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.likeReplies(user, commentId, repliesId)
+    }),
+    unlikeReplies: catchAsync(async (_, { commentId, repliesId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return await dbMethods.unlikeReplies(user, commentId, repliesId)
+    }),
+}
+```
+#### Comment type
+```js
+const commentResolver = {
+    Comment: {
+        creator: catchAsync(async ({ creatorId }, _, { userLoader }) => {
+            const creator = await userLoader.load(creatorId.toString())
+            return creator
+        }),
+        userLike: catchAsync(({ like }, _, { dbMethods }) => {
+            return dbMethods.getUserLike(like)
+        }),
+        totalReplies: ({ replies }) => {
+            return replies.length
+        },
+        totalLike: ({ like }) => {
+            return like.length
+        },
+
+    },
+    Replies: {
+        creator: catchAsync(async ({ creatorId }, _, { userLoader }) => {
+            const creator = await userLoader.load(creatorId.toString())
+            return creator
+        }),
+        userLike: catchAsync(({ like }, _, { dbMethods }) => {
+            return dbMethods.getUserLike(like)
+        }),
+        totalLike: ({ like }) => {
+            return like.length
+        },
+    }
+}
+```
+#### `Message resolver`
+#### Message query
+```js
+const messageQuery = {
+    getMessageRoom: catchAsync(async (_, { roomId }, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return dbMethods.getMessageRoom(user, roomId)
+    })
+}
+```
+#### Message mutation
+```js
+const messageMutation = {
+    createMessage: catchAsync(async (_, args, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return dbMethods.createMessage(user, args, pubsub)
+    }),
+    createMessageRoom: catchAsync(async (_, args, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return dbMethods.createMessageRoom(user, args)
+    }),
+    deleteMessageRoom: catchAsync(async (_, args, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return dbMethods.deleteMessageRoom(user, args)
+    }),
+    leaveMessageRoom: catchAsync(async (_, args, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return dbMethods.leaveMessageRoom(user, args)
+    })
+}
+```
+#### Message subscription
+```js
+const messageSubscription = {
+    messageCreated: {
+        subscribe: withFilter(
+            () => {
+                return pubsub.asyncIterator('MESSAGE_CREATED')
+            },
+            (parent, _, { userId }) => {
+                return parent.messageCreated.users.includes(userId)
+            }
+        )
+    }
+}
+```
+#### Message type
+```js
+const messageResolver = {
+    Message: {
+        creator: catchAsync(async ({ creator, creatorId }, _, { userLoader }) => {
+            if (creator) {
+                return creator
+            }
+            const res = await userLoader.load(creatorId.toString())
+            return res
+        })
+    },
+    MessageRoom: {
+        users: catchAsync(async ({ users }, _, { dbMethods }) => {
+            return dbMethods.getUserLike(users)
+        })
+    }
+}
+```
+#### `Notification resolver`
+#### Notification query
+```js
+const notificationQuery = {
+    getNotification: catchAsync(async (_, args, { dbMethods, req }) => {
+        const user = await checkAuth(req)
+        return dbMethods.getNotification(user, args)
+    })
+}
+```
+#### Notification subscription
+```js
+const notificationResolver = {
+    Notification: {
+        from: catchAsync(async ({ fromId }, _, { userLoader }) => {
+            const from = await userLoader.load(fromId.toString())
+            return from
+        })
+    }
+}
+```
+#### Notification type
+```js
+const notificationSubscription = {
+    notificationCreated: {
+        subscribe: withFilter(
+            () => {
+                return pubsub.asyncIterator('NOTIFICATION_CREATED')
+            },
+            (parent, _, { userId }) => {
+                return parent.notificationCreated.userId.equals(userId)
+            }
+        )
+    }
+}
+```
+#### `Type resolver`
+```js
+const dateResolver = new GraphQLScalarType({
+    name: 'Date',
+    parseValue(value) {
+        return new Date(value)
+    },
+    serialize(value) {
+        return value.toLocaleString()
+    }
+})
+
+const typeResolver = {
+    Date: dateResolver
 }
 ```

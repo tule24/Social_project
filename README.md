@@ -9,6 +9,7 @@
   - [User](#user-schema)
   - [Post](#post-schema)
   - [Comment](#comment-schema)
+  - [Message](#message-schema)
 ## Install & run
 `yarn install`: install dependencies in package.json  
 `yarn test`: run app in development env  
@@ -1159,5 +1160,193 @@ async (user, commentId, repliesId) => {
           )
      }
      return { id: repliesId }
+}
+```
+### `Message Schema`
+|*|Type|Resolver|  
+|-|-|-|
+|Query|getMessageRoom|[getMessageRoom](#getMessageRoom)|
+|Mutation|createMessage|[createComment](#createMessage)|
+||createMessageRoom|[updateComment](#createMessageRoom)|
+||deleteMessageRoom|[deleteComment](#deleteMessageRoom)|
+||leaveMessageRoom|[likeComment](#leaveMessageRoom)|
+|Subscription|messageCreated|[messageCreated](#messageCreated)|
+
+### `Base type`
+```graphql
+type MessageChild {
+  message: String!
+  createdAt: Date!
+}
+type Message {
+  id: ID!
+  roomId: ID!
+  creator: User!
+  content: [MessageChild]!
+}
+type LastMessage {
+  creatorId: ID
+  content: String
+}
+type MessageRoom {
+  id: ID!
+  users: [User]!
+  messages: [Message]!
+  lastMessage: LastMessage
+  updatedAt: Date!
+}
+```
+### `getMessageRoom`
+##### Query
+```graphql
+getMessageRoom(roomId: ID!): MessageRoom!
+```
+##### Resolver
+```js
+async (user, roomId, args) => {
+     const messageRoom = await checkFound(roomId, Message)
+     const checkInRoom = messageRoom.users.includes(user._id)
+     if (!checkInRoom) {
+          throw GraphError(
+               "You don't have permission to access this room",
+               "UNAUTHORIZED"
+          )
+     }
+
+     return messageRoom
+}
+```
+### `createMessage`
+##### Mutation
+```graphql
+createMessage(roomId: ID!, content: String!): Message!
+```
+##### Resolver
+```js
+async (user, { roomId, content }, pubsub) => {
+     const messageRoom = await checkFound(roomId, Message)
+
+     const checkInRoom = messageRoom.users.find(el => el.equals(user._id))
+     if (!checkInRoom) {
+          throw GraphError(
+               "You don't have permission to access this room",
+               "UNAUTHORIZED"
+          )
+     }
+     const message = {
+          message: content,
+          createdAt: Date.now()
+     }
+     if (messageRoom?.lastMessage?.creatorId?.equals(user._id)) {
+          messageRoom.messages[0].content.push(message)
+        } else {
+          const newMessage = {
+               creatorId: user._id,
+               content: [message]
+          }
+          messageRoom.messages.unshift(newMessage)
+     }
+
+     messageRoom.lastMessage = {
+          creatorId: user._id,
+          content
+     }
+     await messageRoom.save()
+     const newMessage = messageRoom.messages.shift()
+
+     // message subscription
+     pubsub.publish('MESSAGE_CREATED', {
+          messageCreated: {
+               users: messageRoom.users,
+               id: newMessage._id,
+               roomId,
+               creator: user,
+               ...newMessage._doc
+          }
+     })
+     return {
+          id: newMessage._id,
+          creator: user,
+          ...newMessage._doc
+     }
+}
+```
+### `createMessageRoom`
+##### Mutation
+```graphql
+createMessageRoom(users: [ID!]!): MessageRoom!
+```
+##### Resolver
+```js
+async (user, { users }) => {
+     const newMessageRoom = new Message({
+          users,
+          messages: []
+     })
+     await newMessageRoom.save()
+
+     await Promise.all(users.map(async (el) => {
+          const user = await User.findById(el)
+          user.messageRooms.push(newMessageRoom._id)
+          return await user.save()
+     }))
+     return newMessageRoom
+}
+```
+### `deleteMessageRoom`
+##### Mutation
+```graphql
+deleteMessageRoom(roomId: ID!): MessageRoom!
+```
+##### Resolver
+```js
+async (user, { roomId }) => {
+     const messageRoom = await Message.findByIdAndDelete(roomId)
+     if (!messageRoom) {
+          throw GraphError(
+               "Room id not found",
+               "NOT_FOUND"
+          )
+     }
+
+     const { users } = messageRoom
+     await Promise.all(users.map(async (el) => {
+          const user = await User.findById(el)
+          user.messageRooms = user.messageRooms.filter(room => room !== el)
+          return await user.save()
+     }))
+
+     return messageRoom
+}
+```
+### `leaveMessageRoom`
+##### Mutation
+```graphql
+leaveMessageRoom(roomId: ID!): MessageRoom!
+```
+##### Resolver
+```js
+async (user, { roomId }) => {
+     const messageRoom = await checkFound(roomId, Message)
+     messageRoom.users = messageRoom.users.filter(el => el !== user._id)
+     await messageRoom.save()
+}
+```
+### `messageCreated`
+##### Subscription
+```graphql
+messageCreated: Message!
+```
+##### Subscription
+```js
+messageCreated: {
+     subscribe: withFilter(
+          () => {
+               return pubsub.asyncIterator('MESSAGE_CREATED')
+          },
+          (parent, _, { userId }) => {
+               return parent.messageCreated.users.includes(userId)
+          }
+     )
 }
 ```

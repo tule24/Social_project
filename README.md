@@ -4,6 +4,7 @@
 ## Menu 
 - [Install & run](#install)
 - [server.js](#server.js)
+- [mixed](#mixed)
 
 ## Install & run
 `yarn install`: install dependencies in package.json  
@@ -61,6 +62,7 @@ const serverCleanup = useServer({
      }
 }, wsServer)
 ```
+### mixed
 Set up ApolloServer
 ```js
 const server = new ApolloServer({

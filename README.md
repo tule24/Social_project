@@ -4,6 +4,8 @@
 ## Menu 
 - [Install & run](#install--run)
 - [Setup server](#serverjs)
+- Code flow
+  - [Auth](#auth)
 ## Install & run
 `yarn install`: install dependencies in package.json  
 `yarn test`: run app in development env  
@@ -95,4 +97,153 @@ const PORT = process.env.PORT || 4000
 httpServer.listen(PORT, () => {
      console.log(`🚀 Server running at http://localhost:${PORT}/graphql`);
 })
+```
+### `Auth`
+|Type|Resolver|  
+|-|-|
+|register|[regiser](#register)|
+|login|[login](#login)|
+|logout|[logout](#logout)|
+|refreshToken|[refreshToken](#refreshToken)|
+
+#### `Base type`
+```graphql
+type Auth {
+  user: User!
+  token: String!
+  refreshToken: String!
+}
+```
+#### `register`
+#### Mutation
+```graphql
+register(registerInput: registerInput!): User!
+```
+#### Input
+```graphql
+input registerInput {
+  name: String
+  password: String
+  email: String
+  ava: String
+  dob: Date
+  phone: String
+  address: String
+}
+```
+#### Resolver
+```js
+async ({ name, password, email }) => {
+     if (!name || !password || !email) {
+          throw GraphError(
+               "Please provide name, password & email",
+               "BAD_REQUEST"
+          )
+     }
+
+     const user = await User.findOne({ email })
+     if (user) {
+          throw GraphError(
+               "Email already exist",
+               "BAD_REQUEST"
+          )
+     }
+
+     const newUser = await User.create({
+          name,
+          password,
+          email
+     })
+
+     return newUser
+}
+```
+#### `login`
+#### Mutation
+```graphql
+login(loginInput: loginInput!): Auth!
+```
+#### Input type
+```graphql
+input loginInput {
+  email: String
+  password: String
+}
+```
+#### Resolver
+```js
+async ({ email, password }) => {
+     if (!email || !password) {
+          throw GraphError(
+               "Please provide email & password",
+               "BAD_REQUEST"
+          )
+     }
+
+     const user = await User.findOne({ email })
+     if (!user) {
+          throw GraphError(
+               "Email not register",
+               "BAD_REQUEST"
+          )
+     }
+
+     const checkPass = await checkPassword(password, user.password)
+     if (!checkPass) {
+          throw GraphError(
+               "Password not match",
+               "UNAUTHORIZED"
+          )
+     }
+
+     user.refreshToken = createRefreshJWT(user._id)
+     await user.save()
+
+     return {
+          user,
+          token: createJWT(user._id),
+          refreshToken: user.refreshToken
+     }
+}
+```
+#### `logout`
+#### Mutation
+```graphql
+logout: String!
+```
+#### Resolver
+```js
+async (req) => {
+     const user = await checkAuth(req)
+     user.refreshToken = null
+     await user.save()
+}
+```
+#### `refreshToken`
+#### Mutation
+```graphql
+refreshToken(refreshToken: String!): Auth!
+```
+#### Resolver
+```js
+async (refreshToken) => {
+     const user = await User.findOne({ refreshToken })
+     if (!user) {
+          throw GraphError(
+               "Refreshtoken not exist",
+               "UNAUTHENTICATED"
+          )
+     }
+
+     jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET)
+
+     user.refreshToken = createRefreshJWT(user._id)
+     await user.save()
+
+     return {
+          user,
+          token: createJWT(user._id),
+          refreshToken: user.refreshToken
+     }
+}
 ```

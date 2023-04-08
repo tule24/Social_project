@@ -10,6 +10,7 @@
   - [Post](#post-schema)
   - [Comment](#comment-schema)
   - [Message](#message-schema)
+  - [Notification](#notification-schema)
 ## Install & run
 `yarn install`: install dependencies in package.json  
 `yarn test`: run app in development env  
@@ -1346,6 +1347,53 @@ messageCreated: {
           },
           (parent, _, { userId }) => {
                return parent.messageCreated.users.includes(userId)
+          }
+     )
+}
+```
+### `Message Schema`
+|*|Type|Resolver|  
+|-|-|-|
+|Query|getNotification|[getNotification](#getNotification)|
+|Subscription|notificationCreated|[messageCreated](#messageCreated)|
+
+### `Base type`
+```graphql
+type Notification {
+  id: ID!
+  from: User!,
+  option: String!,
+  contentId: ID!,
+  content: String!
+}
+```
+### `getNotification`
+##### Query
+```graphql
+getNotification(page: Int, limit: Int): [Notification]!
+```
+##### Resolver
+```js
+async (user, args) => {
+     const { limit, skip } = pagination(args)
+     const notifications = await Notification.find({ userId: user._id }).sort('-createdAt').skip(skip).limit(limit)
+     return notifications
+}
+```
+### `notificationCreated`
+##### Subscription
+```graphql
+notificationCreated: Notification!
+```
+##### Subscription
+```js
+notificationCreated: {
+     subscribe: withFilter(
+          () => {
+               return pubsub.asyncIterator('NOTIFICATION_CREATED')
+          },
+          (parent, _, { userId }) => {
+               return parent.notificationCreated.userId.equals(userId)
           }
      )
 }
